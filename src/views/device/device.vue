@@ -109,6 +109,9 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="deleteDevice(scope.row)">删除</span>
               </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span style="display:inline-block;padding:0 10px;" @click="handleSimulation(scope.row)">仿真</span>
+              </el-dropdown-item>
               <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleLineData(scope.row)">详情</span>
               </el-dropdown-item>-->
@@ -1015,6 +1018,15 @@
       handleRouter(row) {
         this.$router.push({
           name: 'connectvnc',
+          params: {
+            id: row.id,
+            ip: row.hostAddress
+          }
+        })
+      },
+      handleSimulation(row) {
+        this.$router.push({
+          name: 'simulation',
           params: {
             id: row.id,
             ip: row.hostAddress
