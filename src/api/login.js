@@ -1,7 +1,6 @@
 import request from '@/utils/request'
 /* eslint-disable */
 export function loginByUsername(data) {
-  console.log(data)
   /*let indexEqu1 = proData.indexOf("=");
   let indexAnd = proData.indexOf("&");
   let indexEqu2 = proData.lastIndexOf("=");

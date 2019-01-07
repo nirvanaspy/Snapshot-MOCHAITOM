@@ -191,7 +191,10 @@
           <el-input v-model="temp.hostAddress"></el-input>
         </el-form-item>
         <el-form-item :label="$t('table.devicePath')" prop="deployPath">
-          <el-input v-model="temp.deployPath" placeholder="例如：D:/test/"></el-input>
+          <el-tooltip placement="top">
+            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
+            <el-input v-model="temp.deployPath" placeholder="例如：D:/test"></el-input>
+          </el-tooltip>
         </el-form-item>
         <el-form-item :label="$t('table.deviceDesc')" prop="description">
           <el-input v-model="temp.description"></el-input>
@@ -306,7 +309,10 @@
       <el-form :rules="pathRules" ref="reportForm" :model="pathTemp"  label-width="100px" style='width: 80%; margin:0 auto;'>
         <el-form-item label="部署路径" prop="reportPath">
           <el-input style="display: none;"></el-input>
-          <el-input v-model="pathTemp.reportPath" @keyup.enter.native.prevent="reportDevice" placeholder="例如：D:/test/"/>
+          <el-tooltip placement="top">
+            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows:  C:/test<br/>Linux:  /test<br/>Vxworks:  /test</div>
+            <el-input v-model="pathTemp.reportPath" @keyup.enter.native.prevent="reportDevice" placeholder="例如：D:/test"/>
+          </el-tooltip>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

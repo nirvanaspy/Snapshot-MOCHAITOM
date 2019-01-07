@@ -309,7 +309,6 @@
         this.resetTemp()
         this.dialogStatus = 'create'
         this.dialogFormVisible = true
-        console.log(event.target)
         event.target.loading = true
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
@@ -354,7 +353,6 @@
       },
       handleUpdate(row) {
         this.selectedId = row.id;
-        console.log(this.selectedId);
         this.temp = Object.assign({}, row) // copy obj
         this.dialogStatus = 'update'
         this.dialogFormVisible = true
@@ -373,21 +371,6 @@
             };
 
             const id = this.selectedId;
-            // let beforUpdateName = '';
-
-            console.log("改前改后-----------")
-
-
-            /*for(let i=0;i<this.list.length;i++){
-              if(id == this.list[i].id){
-                beforUpdateName = this.list[i].name;
-                console.log(beforUpdateName);
-              }
-            }*/
-
-            /*console.log(this.temp.name);
-
-            console.log(id);*/
             let proData = qs.stringify(data);
             updateProject(proData, id).then(() => {
               this.creProLoading = false
@@ -482,7 +465,6 @@
             }
             var qs = require('qs');
             let datapost = qs.stringify(data)
-            // console.log(this.userId)
             updateUser(datapost,this.userId).then(() => {
               this.modPasLoading = false
               this.modifyPasswordVisible = false

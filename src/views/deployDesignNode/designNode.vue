@@ -242,6 +242,9 @@
                       <el-table-column :label="$t('table.compName')" width="160" align="center">
                         <template slot-scope="scope">
                           <span>{{scope.row.name}}</span>
+                          <!--<el-tooltip class="item" effect="dark" content="当前组件不是最新版本" placement="top-start">
+                            <span>{{scope.row.name}}</span>
+                          </el-tooltip>-->
                         </template>
                       </el-table-column>
                       <el-table-column width="100px" align="center" :label="$t('table.compVersion')">
@@ -803,6 +806,26 @@
         })
       },
       checkNodeDevice() {
+        this.deviceLoading = true
+        let projectId = this.getCookie('projectId');
+        getAllDevices(projectId).then(response => {
+          this.deviceList = response.data.data
+          this.deviceTotal = response.data.data.length
+          this.searchQueryDevice = ''
+          this.deviceLoading = true
+          this.currentDeviceList = this.deviceList.slice() // 注意：复制数组，防止原数组被修改！！
+          getAllBindDevices(this.deployPlanId).then((res) => {
+            this.bindedDeviceList = res.data.data
+            for (var i = 0; i < this.bindedDeviceList.length; i++) {
+              this.currentDeviceList.splice(this.currentDeviceList.findIndex(item => item.id === this.bindedDeviceList[i].id), 1)
+            }
+            this.deviceLoading = false
+          }).catch(() => {
+            this.deviceLoading = false
+          })
+        })
+      },
+      /*checkNodeDevice() {
         this.searchQueryDevice = ''
         this.deviceLoading = true
         this.currentDeviceList = this.deviceList.slice() // 注意：复制数组，防止原数组被修改！！
@@ -815,7 +838,7 @@
         }).catch(() => {
           this.deviceLoading = false
         })
-      },
+      },*/
       handleSelectRowDevice(val) {
 
       },
@@ -925,6 +948,9 @@
                     this.listComp[j].bindHisComp = this.listBind[i].componentHistoryEntity
                     this.listComp[j].designDetailId = this.listBind[i].id
                     // console.log(this.listComp[j].name);
+
+                    // 判断当前绑定的组件是不是最新组件
+
 
                     this.bindCompsId.push(this.listComp[j].id);
                     break;

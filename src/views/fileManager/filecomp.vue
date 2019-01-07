@@ -119,6 +119,9 @@
       title="上传文件"
       :visible.sync="uploadDialog"
       append-to-body
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
       width="50%">
       <uploader :options="options"
                 :autoStart="autoStart"
@@ -151,6 +154,9 @@
       class="uploadDialog"
       title="上传文件夹"
       :visible.sync="uploadFolderDialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
       append-to-body
       width="50%">
       <uploader :options="options"
@@ -490,8 +496,6 @@
       checkMd5 (fileAdded, fileList) {
         // console.log(this.$refs.uploader.uploader.files)
         this.md5Loading = true
-        console.log(fileAdded)
-        console.log(fileAdded.length)
         $('.manage-uploader .uploader-btn').css('display','none')
         this.fileCompleteLength += fileAdded.length
         // let SparkMD5 = require('spark-md5')
@@ -626,8 +630,6 @@
               } else if (res.data.data == false) {
                 completeFlag++
                 if(completeFlag === fileAdded.length) {
-                  console.log(fileAdded)
-                  console.log('-------')
                   that.md5Loading = false
                   /*if(that.$refs.uploader.uploader.files.length === 0) {
                     let datapost = JSON.stringify(that.fileInfoList)
@@ -678,7 +680,6 @@
               currentChunk++
               if (currentChunk < chunks) {
                 let a = 'deal with' + currentChunk + '剩余' + (chunks - currentChunk)
-                console.log(a)
                 load()
               } else {
                 resolve(spark.end())
@@ -748,6 +749,7 @@
             name: arguments[1].name,
             relativePath: '/' + arguments[1].relativePath
           }
+          console.log('mergeFile' + res.data.data.id)
           this.fileInfoList.push(infoList)
           // let datapost = JSON.stringify(infoList)
           /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
@@ -773,7 +775,6 @@
       },
       // 上传文件夹时 fileComplete 第一个参数为根文件（文件夹），第二个参数为最后一个上传的文件
       fileComplete () {
-        console.log('filecomplete=======')
         // console.log('file complete', arguments)
         // console.log(this.$refs.uploader.uploader.files)
         // alert(arguments[1].uniqueIdentifier)
@@ -947,6 +948,7 @@
             name: arguments[1].name,
             relativePath: '/' + arguments[1].relativePath
           }
+          console.log('mergeFile' + data.identifier)
           this.folderFileInfo.push(infoList)
           // let datapost = JSON.stringify(infoList)
           /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
@@ -1326,6 +1328,7 @@
         // console.log()
         if(this.fileCompleteLength === this.fileInfoList.length && this.fileInfoList.length !== 0) {
           let datapost = JSON.stringify(this.fileInfoList)
+          console.log('fileInfoCount')
           uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
             this.listLoading = false
             this.$notify({
@@ -1344,6 +1347,7 @@
         if(this.folderfileCompleteLength === this.folderFileInfo.length && this.folderFileInfo.length !== 0) {
           // alert(this.folderfileCompleteLength)
           let datapost = JSON.stringify(this.folderFileInfo)
+          console.log('folderFileInfoCount')
           uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
             this.listLoading = false
             this.$notify({

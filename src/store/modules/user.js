@@ -85,6 +85,7 @@ const user = {
           'password': userInfo.password
         }
         const proData = qs.stringify(data);*/
+        removeExpire()
         loginByUsername(formData).then(response => {
           const access_token = response.data.access_token
           const refresh_token = response.data.refresh_token
@@ -119,15 +120,8 @@ const user = {
     },*/
     GetUserInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
-        /*getUserInfo(state.token).then(response => {
-
-        }).catch(error => {
-          console.log('getuserinfoerror')
-          reject(error)
-        })*/
         if (!state.token) { // 由于mockjs 不支持自定义状态码只能这样hack
           reject('error')
-          console.log('hasNoToken')
         }
         const data = state.token
         const refreshToken = state.refreshToken
@@ -141,9 +135,6 @@ const user = {
         // const rolesset = data.username === 'admin' ? 'admin' : 'editor'
         const rolesset = decodeToken.authorities.length > 1 ? 'admin' : 'editor'
         commit('SET_ROLES', rolesset)
-        /*commit('SET_NAME', data.username)
-        commit('SET_AVATAR', '')
-        commit('SET_INTRODUCTION', '')*/
         resolve()
       })
     },
@@ -167,6 +158,7 @@ const user = {
         logout(state.token).then(() => {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
+          removeExpire()
           removeToken()
           resolve()
         }).catch(error => {

@@ -153,7 +153,9 @@
             <el-input v-model="temp.version"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compPath')" prop="relativePath">
-            <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+            <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+            </el-tooltip>
           </el-form-item>
           <el-form-item :label="$t('table.compDesc')" prop="desc">
             <el-input v-model="temp.description"></el-input>
@@ -190,7 +192,9 @@
               <el-input v-model="temp.version"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+                <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              </el-tooltip>
             </el-form-item>
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
@@ -246,7 +250,7 @@
     data() {
       const validatePath = (rule, value, callback) => {
         // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
-        let pattern = /^(\/([a-zA-Z0-9]+))+$/;
+        let pattern = /^(\/([\u4e00-\u9fa5_a-zA-Z0-9]+))+$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -348,7 +352,8 @@
         errorMessage: '操作失败',
         showConfirmBtn: true,
         showConfirmBtn1: true,
-        originalCompTemp: null
+        originalCompTemp: null,
+        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test'
       }
     },
     components: {
@@ -508,116 +513,6 @@
           }*/
           this.$refs['dataForm'].clearValidate()
         })
-        /*this.$nextTick(() => {
-          this.$refs['dataForm'].clearValidate();
-
-          //树
-          compSingle(this.selectedId).then(response => {
-            this.singleComp = response.data.data;
-            this.listLoading = false
-
-            console.log("树信息-------------------");
-            console.log(this.singleComp);
-
-            //对比时，是路径节点与根节点下的孩子节点比较
-            let componentFile = this.singleComp.componentDetailEntities;//组件
-
-            let zNodes = [];
-            let item;
-            for (let m = 0; m < componentFile.length; m++) {
-
-              this.treeInfo.push(componentFile[m]);//放所有文件信息，用于树点击id的选择
-
-              item = this.singleComp;
-
-              let path = (componentFile[m].savePath).split('/');
-
-              for (let i = 1; i < path.length; i++) {
-                item = this.$options.methods.handleInfo(item, path[i]);
-              }
-            };
-
-            zNodes.push(this.singleComp);
-
-            console.log(zNodes);
-
-            let forderTemp = [];
-
-            for (let i = 0; i < this.singleComp.componentDetailEntities.length; i++) {
-              let info = this.singleComp.componentDetailEntities[i].savePath.split('/');
-              let clearId = this.singleComp.componentDetailEntities[i].id;
-
-              if (info.length > 2) {
-
-                if (forderTemp.length > 0) {
-                  let flag = true;
-
-                  for (let j = 0; j < forderTemp.length; j++) {
-                    if (forderTemp[j].name == info[1]) {
-                      flag = false;
-                    }
-                  }
-
-                  if (flag) {
-                    let info2 = {};
-                    info2.name = info[1];
-                    forderTemp.push(info2);
-                  }
-
-                } else {
-                  let info2 = {};
-                  info2.name = info[1];
-                  forderTemp.push(info2);
-                }
-
-
-                this.folderClearData.push(clearId);
-                console.log(this.folderClearData);
-              } else {
-                this.fileInfo.push(this.singleComp.componentDetailEntities[i]);
-                this.fileClearData.push(clearId);
-              }
-            }
-
-            console.log(forderTemp);
-
-            for (let i = 0; i < forderTemp.length; i++) {
-              this.folderInfo.push(forderTemp[i]);
-            }
-
-
-            let setting = {
-              view: {
-                dblClickExpand: false,
-                addHoverDom: this.addHoverDom,
-                removeHoverDom: this.removeHoverDom,
-                selectedMulti: this.true
-              },
-              edit: {
-                enable: true,
-                showRenameBtn: false,
-                showRemoveBtn: false
-              },
-              data: {
-                simpleData: {
-                  enable: true
-                }
-              },
-              callback: {
-                beforeDrag: this.beforeDrag,
-                beforeEditName: this.beforeEditName,
-                beforeRemove: this.beforeRemove,
-                beforeRename: this.beforeRename,
-                onRemove: this.onRemove,
-                onRename: this.onRename,
-                onClick: this.zTreeOnClick
-              }
-            };
-
-            $.fn.zTree.init($("#treeDemo"), setting, zNodes);
-          });
-
-        })*/
       },
       compCopy(row) {
         let qs = require('qs');
@@ -669,10 +564,11 @@
               && this.originalCompTemp.relativePath === this.temp.relativePath
               && this.originalCompTemp.description === this.temp.description)
             {
-              this.$message({
+              /*this.$message({
                 type: 'info',
                 message: '组件信息未修改'
-              })
+              })*/
+              this.dialogFormVisible = false
               return
             }
             this.upComLoading = true
