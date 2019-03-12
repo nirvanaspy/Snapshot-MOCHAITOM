@@ -14,13 +14,17 @@
       </el-table-column>
       <el-table-column min-width="140px" align="center" sortable label="部署时间" prop="tag">
          <template slot-scope="scope">
-           <span>{{computedTimeTag(scope.row.startTime)}}</span>
+           <span v-if="scope.row.startTime">{{computedTimeTag(scope.row.startTime)}}</span>
+           <span v-else>--</span>
          </template>
        </el-table-column>
       <el-table-column min-width="140px" align="center" label="结果">
         <template slot-scope="scope">
-          <span v-if="scope.row.complete" style="color: limegreen;">{{scope.row.message}}</span>
-          <span v-else style="color: red;">{{scope.row.message}}</span>
+          <span v-if="scope.row.complete === true" style="color: limegreen;">{{scope.row.message}}</span>
+          <span v-else>
+            <span v-if="scope.row.message" style="color: red;">{{scope.row.message}}</span>
+            <span v-else>--</span>
+          </span>
         </template>
       </el-table-column>
       <!--<el-table-column width="160px" align="center" label="部署详情">
