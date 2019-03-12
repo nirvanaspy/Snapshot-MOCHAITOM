@@ -20,7 +20,7 @@
                     style="width: 100%;"
                     class="nodeTable"
           >
-            <el-table-column align="center" label="已绑定设备" min-width="160">
+            <el-table-column align="center" label="已绑定设备" min-width="140">
               <template slot-scope="scope">
                 <span v-if="scope.row.deviceEntity" class="link-type" @click="designNodeDetail(scope.row)">{{scope.row.deviceEntity.name}}</span>
                 <span v-else class="link-type" @click="designNodeDetail(scope.row)">未绑定设备</span>
@@ -31,13 +31,13 @@
                 <span>{{scope.row.description}}</span>
               </template>
             </el-table-column>-->
-            <el-table-column align="center" label="设备ip" min-width="160">
+            <el-table-column align="center" label="设备ip" min-width="140">
               <template slot-scope="scope">
                 <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
                 <span v-else>未绑定设备</span>
               </template>
             </el-table-column>
-            <el-table-column align="center" label="绑定设备" width="120" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="绑定设备" width="90" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <el-popover
                   ref="devicePopover"
@@ -125,7 +125,7 @@
 
               </template>
             </el-table-column>
-            <el-table-column align="center" label="选择组件" width="120" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="选择组件" width="90" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <el-button type="primary" plain size="mini" @click="handleSelectComps(scope.row)">选择组件</el-button>
                 <!--<el-popover
@@ -320,11 +320,11 @@
                 <router-link :to='{name:"deploy",params:{id:scope.row.id}}' v-if="!scope.row.deleted"><el-button size="mini" type="success">部署</el-button></router-link>
               </template>
             </el-table-column>-->
-            <el-table-column align="center" :label="$t('table.actions')" width="120">
+            <el-table-column align="center" :label="$t('table.actions')" width="110">
               <template slot-scope="scope">
                 <el-dropdown trigger="click" v-if="!scope.row.deleted">
                   <span class="el-dropdown-link" v-if="!scope.row.virtual">
-                    <el-button type="success" plain>更多操作</el-button>
+                    <el-button type="success" plain size="mini">更多操作</el-button>
                   </span>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item>
@@ -358,6 +358,7 @@
           <!--<div id="deviceComp" style="width: 100%;height:440px;"></div>-->
           <div class='chart-container' style="height: 100%">
             <deployBindER id="ER" :detaillist="nodeDetail" :currentNodeInfo="currentNodeInfo"></deployBindER>
+            <!--<fullScreenER></fullScreenER>-->
           </div>
         </div>
       </template>
@@ -369,6 +370,8 @@
       <el-input style="width: 200px;position: absolute;top: 16px;left: 100px;" class="filter-item" placeholder="请输入组件名称"
                 v-model="searchAbleCompQuery">
       </el-input>
+      <el-button size="mini" type="primary" style="position: absolute;top: 15px; left: 316px;" @click="handleCompCreate">添加组件
+      </el-button>
       <div class="selectDetail" style="min-height: 300px;overflow: hidden;">
         <div class="ableToSelectComp" style="width:50%;float: left;padding: 10px;">
           <el-table :data="listAbleComp" border fit
@@ -448,7 +451,7 @@
                 <span>{{scope.row.componentHistoryEntity.name}}</span>
               </template>
             </el-table-column>
-            <el-table-column align="center" label="当前组件版本创建时间" min-width="80" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="当前版本创建时间" min-width="80" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <span>{{scope.row.componentHistoryEntity.createTime}}</span>
               </template>
@@ -504,6 +507,37 @@
           </el-table>
         </div>
       </div>
+      <el-dialog title="添加组件" class="filesDialog" :visible.sync="compDialogFormVisible" top="7vh" width="86%" append-to-body="">
+        <el-form :rules="componentRules" ref="dataCompForm" :model="compTemp" label-width="100px"
+                 style='width: 100%;height: 100%'>
+          <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
+            <el-form-item :label="$t('table.compName')" prop="name">
+              <el-input v-model="compTemp.name"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('table.compVersion')" prop="version">
+              <el-input v-model="compTemp.version"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('table.compPath')" prop="relativePath">
+              <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+                <el-input v-model="compTemp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+              </el-tooltip>
+            </el-form-item>
+            <el-form-item :label="$t('table.compDesc')" prop="desc">
+              <el-input v-model="compTemp.description"></el-input>
+            </el-form-item>
+            <div class="button-container" style="float: right;">
+              <el-button @click="compDialogFormVisible = false">关闭</el-button>
+              <el-button v-if="showConfirmBtn" type="primary" @click="createComp" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
+            </div>
+          </div>
+          <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px"
+               v-loading="managerLoading"
+               element-loading-text="请先填写组件的基本信息并创建"
+          >
+            <comFileManage ref="createComFile" :selectCompId="selectedCompId" :selectCompName="selectedCompName"></comFileManage>
+          </div>
+        </el-form>
+      </el-dialog>
     </el-dialog>
 
   </div>
@@ -546,12 +580,13 @@
   import waves from '@/directive/waves' // 水波纹指令
   import splitPane from 'vue-splitpane'
   import deployBindER from '../deployBind/deployBindER'
+  import fullScreenER from '../deployBind/fullScreenER'
   import Sortable from 'sortablejs'
   import Vue from 'vue'
 
   export default {
     name: 'designNode',
-    components: {splitPane, deployBindER, comFileManage},
+    components: {splitPane, deployBindER, comFileManage, fullScreenER},
     directives: {
       waves
     },
@@ -883,6 +918,7 @@
                 duration: 2000
               })
               this.getList()
+              this.getAbleComps(this.currentNodeId)
             }).catch((error) => {
               this.showConfirmBtn = true
               this.creComLoading = false
