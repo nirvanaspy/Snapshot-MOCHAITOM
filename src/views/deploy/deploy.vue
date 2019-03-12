@@ -300,7 +300,7 @@
         let url = service.defaults.baseURL + '/OMS';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
-        //stompClient.debug=null
+        stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
           stompClient.subscribe('/onlineDevice', function (response) {
@@ -403,18 +403,18 @@
                         that.list[j].state = that.webProgressBody[i].state;
                         that.list[j].fileState = that.webProgressBody[i].state;
                         that.list[j].descript = that.webProgressBody[i].description;
-
-                        for(let k=0;k<that.list[j].comps.length;k++){   //重置为可部署状态
-                          if(that.list[j].progress !== 100){
-                            that.list[j].comps[k].ifComplete = false;
-                            that.list[j].comps[k].ifWait = true;
-                            //that.list[j].comps[k].ifWait = true;
-                          }else{
-                            that.list[j].comps[k].ifComplete = true;
-                            that.list[j].comps[k].ifWait = false;
+                        if(that.list[j].comps) {
+                          for(let k=0;k<that.list[j].comps.length;k++){   //重置为可部署状态
+                            if(that.list[j].progress !== 100){
+                              that.list[j].comps[k].ifComplete = false;
+                              that.list[j].comps[k].ifWait = true;
+                              //that.list[j].comps[k].ifWait = true;
+                            }else{
+                              that.list[j].comps[k].ifComplete = true;
+                              that.list[j].comps[k].ifWait = false;
+                            }
                           }
                         }
-
                       }
                     }
                   }
@@ -501,7 +501,7 @@
                 this.dialogFormVisible = false
                 this.$notify({
                   title: '成功',
-                  message: '部署结束',
+                  message: '开始部署',
                   type: 'success',
                   duration: 2000
                 })
@@ -543,9 +543,9 @@
         }
 
         // 一键部署的id
-        console.log('一键部署的id');
+        /*console.log('一键部署的id');
         console.log(this.deployPlanId);
-        console.log(this.deployIds);
+        console.log(this.deployIds);*/
 
         if(this.deployIds.length > 0){    //有设备在线
           this.$confirm('确认部署所有在线设备吗吗？', '提示', {
@@ -557,7 +557,7 @@
               // this.deployLoading = false
               this.$notify({
                 title: '成功',
-                message: '部署结束',
+                message: '开始部署',
                 type: 'success',
                 duration: 2000
               })
