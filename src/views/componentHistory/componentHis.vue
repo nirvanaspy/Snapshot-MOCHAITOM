@@ -160,6 +160,7 @@
   import waves from '@/directive/waves' // 水波纹指令
   import { Loading } from 'element-ui'
   import comFileManage from '@/views/fileManager/historyFile'
+  import service from '@/utils/request'
 
   export default {
     name: 'componentHistory',
@@ -462,7 +463,7 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'apis/componenthistorys/' + id + '/export';
+        this.exportUrl = service.defaults.baseURL + '/componenthistorys/' + id + '/export';
 
         console.log(this.exportUrl);
         window.open(this.exportUrl);
