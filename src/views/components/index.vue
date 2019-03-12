@@ -222,12 +222,12 @@
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
             </el-form-item>
-            <el-form-item label="修改描述" prop="desc">
+            <!--<el-form-item label="修改描述" prop="desc">
               <el-input v-model="temp.modifyDescription"
                         type="textarea"
                         :rows="2"
                         placeholder="请输入修改描述"></el-input>
-            </el-form-item>
+            </el-form-item>-->
             <div class="button-container">
               <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
               <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
