@@ -4,7 +4,7 @@
       <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
         设备回收站
       </div>
-      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
+      <el-input style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
       <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
       <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
@@ -39,7 +39,7 @@
           <span v-else>--</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80px" align="center" label="CPU">
+      <el-table-column min-width="90px" align="center" label="CPU">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <span v-else>{{Math.round(scope.row.cpuClock/1000*100)/100}}GHz</span>
@@ -59,14 +59,14 @@
           <span v-else-if="scope.row.ifChangeColor >= 85" style="color: #FF0000;">{{computedRamSize(scope.row)}}%</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80px" align="center" label="上行速度">
+      <el-table-column min-width="90px" align="center" label="上行速度">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <!--<span v-else>{{scope.row.upstreamSpeed}}</span>-->
           <span v-else>{{computedUpStream(scope.row.upLoadSpeed)}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="80px" align="center" label="下行速度">
+      <el-table-column min-width="90px" align="center" label="下行速度">
         <template slot-scope="scope">
           <span v-if="!scope.row.online">--</span>
           <!--<span v-else>{{scope.row.downstreamSpeed}}</span>-->
@@ -600,12 +600,20 @@
       handleSizeChange(val) {
         this.listQuery.size = val
         this.pagesize = val
-        this.getList()
+        if(this.isHistory) {
+          this.getHis()
+        } else {
+          this.getList()
+        }
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        this.getList()
+        if(this.isHistory) {
+          this.getHis()
+        } else {
+          this.getList()
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({

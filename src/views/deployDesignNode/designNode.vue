@@ -5,18 +5,12 @@
     <split-pane split="vertical" class="splicClass" style="height: 96%">
       <template slot="paneL">
         <div class="filter-container" style="padding: 10px 0 5px 5px">
-          <el-input @keyup.enter.native="handleFilter" style="width: 200px;" class="filter-item" placeholder="请输入已绑定设备ip"
+          <el-input style="width: 200px;" class="filter-item" placeholder="请输入已绑定设备ip"
                     v-model="searchQuery">
           </el-input>
           <el-button class="filter-item" style="margin-left: 10px;float:right;" @click="addNode" type="success"
                      icon="el-icon-edit" v-show="!isHistory">添加节点
           </el-button>
-          <!--<el-button type="danger" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
-            回收站
-          </el-button>
-          <el-button type="success" @click="showNow" style="float: right;" icon="el-icon-back" v-show="isHistory">
-            退出回收站
-          </el-button>-->
         </div>
         <div style="height: 80%;padding-left: 6px;">
           <el-table :key='tableKey' :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" border fit
@@ -26,7 +20,7 @@
                     style="width: 100%;"
                     class="nodeTable"
           >
-            <el-table-column align="center" label="已绑定设备" min-width="160">
+            <el-table-column align="center" label="已绑定设备" min-width="140">
               <template slot-scope="scope">
                 <span v-if="scope.row.deviceEntity" class="link-type" @click="designNodeDetail(scope.row)">{{scope.row.deviceEntity.name}}</span>
                 <span v-else class="link-type" @click="designNodeDetail(scope.row)">未绑定设备</span>
@@ -37,13 +31,13 @@
                 <span>{{scope.row.description}}</span>
               </template>
             </el-table-column>-->
-            <el-table-column align="center" label="设备ip" min-width="160">
+            <el-table-column align="center" label="设备ip" min-width="140">
               <template slot-scope="scope">
                 <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
                 <span v-else>未绑定设备</span>
               </template>
             </el-table-column>
-            <el-table-column align="center" label="绑定设备" width="120" class-name="small-padding fixed-width">
+            <el-table-column align="center" label="绑定设备" width="90" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <el-popover
                   ref="devicePopover"
@@ -64,7 +58,6 @@
                               highlight-current-row
                               ref="deviceTable"
                               style="width: 100%;"
-                              @select="handleSelectRowDevice"
                               @selection-change="handleCheckedDeviceChange" id="deviceTable">
                       <el-table-column
                         type="selection"
@@ -87,18 +80,6 @@
                           <span>{{scope.row.deployPath}}</span>
                         </template>
                       </el-table-column>
-                      <!--<el-table-column min-width="100px" align="center" :label="$t('table.compSize')">
-                        <template slot-scope="scope">
-                          <span>{{Math.round(scope.row.size/1024/1024*100)/100}}M</span>
-                        </template>
-                      </el-table-column>-->
-                      <!--<el-table-column label="解绑" width="80" align="center">
-                        <template slot-scope="scope">
-                          &lt;!&ndash;<span>{{scope.row.isBind}}</span>&ndash;&gt;
-                          <el-button type="danger" icon="el-icon-delete" size="mini" circle v-if="scope.row.isBind" @click=""></el-button>
-                        </template>
-                      </el-table-column>-->
-
                     </el-table>
                     <!--添加设备对话框-->
                     <el-dialog title="添加设备" :visible.sync="deviceDialogFormVisible" width="40%" append-to-body="">
@@ -130,18 +111,6 @@
                       </div>
                     </el-dialog>
                   </div>
-                  <!--<el-pagination
-                    @size-change="handleSizeChange2"
-                    @current-change="handleCurrentChange2"
-                    :current-page="currentPage2"
-                    :page-sizes="[10,20,30]"
-                    :page-size="listQuery2.limit"
-                    layout="total, sizes, prev, pager, next, jumper"
-                    :total="total2"
-                    background
-                    style="text-align: center;margin-top:20px"
-                  >
-                  </el-pagination>-->
                   <div style="margin-top: 20px;">
                     <el-button size="mini" type="success" style="float:right;" @click="bindDevice"
                                :loading="bindDeviceLoading">绑定
@@ -156,14 +125,10 @@
 
               </template>
             </el-table-column>
-            <!--<el-table-column width="120" align="center" label="绑定组件">
+            <el-table-column align="center" label="选择组件" width="90" class-name="small-padding fixed-width">
               <template slot-scope="scope">
-                <span><el-button size="mini" type="primary">选择组件</el-button></span>
-              </template>
-            </el-table-column>-->
-            <el-table-column align="center" label="选择组件" width="120" class-name="small-padding fixed-width">
-              <template slot-scope="scope">
-                <el-popover
+                <el-button type="primary" plain size="mini" @click="handleSelectComps(scope.row)">选择组件</el-button>
+                <!--<el-popover
                   :ref="scope.row.id"
                   placement="right"
                   width="600"
@@ -189,7 +154,7 @@
                               id="compTable"
                               :ref="'compTable' + scope.row.id"
                     >
-                      <!--ref="compMultiTable"-->
+                      &lt;!&ndash;ref="compMultiTable"&ndash;&gt;
                       <el-table-column
                         type="selection"
                         :reserve-selection="true"
@@ -199,11 +164,11 @@
                       </el-table-column>
                       <el-table-column align="left" width="40" type="expand">
                         <template slot-scope="props">
-                          <!--<el-checkbox-group
+                          &lt;!&ndash;<el-checkbox-group
                             v-model="checkedHisComId"
                             :max="1">
                             <el-checkbox v-for="item in props.row.hisVersion" :key="item.id">{{item.name}}</el-checkbox>
-                          </el-checkbox-group>-->
+                          </el-checkbox-group>&ndash;&gt;
 
                           <el-table
                             stripe highlight-current-row
@@ -212,10 +177,10 @@
                             :default-sort="{prop: 'createTime', order: 'descending'}"
                             style="padding: 0 0"
                           >
-                            <!--<el-table-column v-if="!props.row.isBind" type="selection" :selectable='checkHisIsBind'>
+                            &lt;!&ndash;<el-table-column v-if="!props.row.isBind" type="selection" :selectable='checkHisIsBind'>
                             </el-table-column>
                             <el-table-column v-else type="selection" :selectable='disableAllHis'>
-                            </el-table-column>-->
+                            </el-table-column>&ndash;&gt;
                             <el-table-column>
                               <template slot-scope="scope">
                                 <el-radio-group v-model="props.row.id">
@@ -224,24 +189,24 @@
                                 </el-radio-group>
                               </template>
                             </el-table-column>
-                            <!--<el-table-column>
+                            &lt;!&ndash;<el-table-column>
                               <template slot-scope="scope">
                                 <el-checkbox-group v-model="checkedHisComId" :max="1">
                                   <el-checkbox :label="scope.row.id" @change.native="getSelectHisId(scope.row, props.row)" :disabled="computedDisabled(scope.row, props.row)"></el-checkbox>
                                 </el-checkbox-group>
                               </template>
-                            </el-table-column>-->
+                            </el-table-column>&ndash;&gt;
                             <el-table-column width="40">
                               <template slot-scope="scope">
                                 <span v-if="scope.row.isBind"><svg-icon icon-class="history2"></svg-icon></span>
                                 <span v-else><svg-icon icon-class="history1"></svg-icon></span>
                               </template>
                             </el-table-column>
-                            <!--<el-table-column label="组件名" align="left" width="160">
+                            &lt;!&ndash;<el-table-column label="组件名" align="left" width="160">
                               <template slot-scope="scope">
                                 <span class="link-type">{{scope.row.name}}</span>
                               </template>
-                            </el-table-column>-->
+                            </el-table-column>&ndash;&gt;
                             <el-table-column label="修改时间" align="left" width="160" sortable prop="createTime">
                               <template slot-scope="scope">
                                 <span class="link-type">{{scope.row.createTime}}</span>
@@ -257,11 +222,11 @@
                                 <svg-icon v-if="scope.row.isBind" icon-class="correct"></svg-icon>
                               </template>
                             </el-table-column>
-                            <!--<el-table-column label="描述">
+                            &lt;!&ndash;<el-table-column label="描述">
                               <template slot-scope="scope">
                                 <span>{{scope.row.componentEntity.description}}</span>
                               </template>
-                            </el-table-column>-->
+                            </el-table-column>&ndash;&gt;
                           </el-table>
                         </template>
                       </el-table-column>
@@ -280,14 +245,14 @@
                           <span>{{scope.row.relativePath}}</span>
                         </template>
                       </el-table-column>
-                      <!--<el-table-column min-width="100px" align="center" :label="$t('table.compSize')">
+                      &lt;!&ndash;<el-table-column min-width="100px" align="center" :label="$t('table.compSize')">
                         <template slot-scope="scope">
                           <span>{{Math.round(scope.row.size/1024/1024*100)/100}}M</span>
                         </template>
-                      </el-table-column>-->
+                      </el-table-column>&ndash;&gt;
                       <el-table-column label="解绑" width="80" align="center">
                         <template slot-scope="scope">
-                          <!--<span>{{scope.row.isBind}}</span>-->
+                          &lt;!&ndash;<span>{{scope.row.isBind}}</span>&ndash;&gt;
                           <el-button type="danger" icon="el-icon-delete" size="mini" circle v-if="scope.row.isBind"
                                      @click="deleteBindRelation(scope.row)"></el-button>
                         </template>
@@ -295,7 +260,7 @@
 
                     </el-table>
 
-                    <!--添加组件对话框-->
+                    &lt;!&ndash;添加组件对话框&ndash;&gt;
                     <el-dialog title="添加组件" class="filesDialog" :visible.sync="compDialogFormVisible" top="7vh" width="86%" append-to-body="">
                       <el-form :rules="componentRules" ref="dataCompForm" :model="compTemp" label-width="100px"
                                style='width: 100%;height: 100%'>
@@ -346,7 +311,7 @@
                     </el-button>
                   </div>
                   <el-button type="primary" plain size="mini" slot="reference">选择组件</el-button>
-                </el-popover>
+                </el-popover>-->
               </template>
             </el-table-column>
             <!--<el-table-column align="center" width="200" label="部署操作" v-if="!isHistory">
@@ -355,11 +320,11 @@
                 <router-link :to='{name:"deploy",params:{id:scope.row.id}}' v-if="!scope.row.deleted"><el-button size="mini" type="success">部署</el-button></router-link>
               </template>
             </el-table-column>-->
-            <el-table-column align="center" :label="$t('table.actions')" width="120">
+            <el-table-column align="center" :label="$t('table.actions')" width="110">
               <template slot-scope="scope">
                 <el-dropdown trigger="click" v-if="!scope.row.deleted">
                   <span class="el-dropdown-link" v-if="!scope.row.virtual">
-                    <el-button type="success" plain>更多操作</el-button>
+                    <el-button type="success" plain size="mini">更多操作</el-button>
                   </span>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item>
@@ -368,30 +333,8 @@
                     <el-dropdown-item v-if="scope.row.deviceEntity" divided>
                 <span style="display:inline-block;padding:0 10px;" @click="unbindDevice(scope.row)">解绑</span>
               </el-dropdown-item>
-                      <!--<el-dropdown-item divided>
-                            <span style="display:inline-block;padding:0 10px;" @click="handleCreateBaseline(scope.row)">新建基线</span>
-                          </el-dropdown-item>
-                          <el-dropdown-item divided>
-                            <span style="display:inline-block;padding:0 10px;" @click="checkBaselines(scope.row)">基线详情</span>
-                          </el-dropdown-item>
-                          <el-dropdown-item divided>
-                            <span style="display:inline-block;padding:0 10px;" @click="handleMonitor(scope.row)">在线监控</span>
-                        </el-dropdown-item>-->
                   </el-dropdown-menu>
                 </el-dropdown>
-                <!--<el-dropdown trigger="click" v-else>
-                  <span class="el-dropdown-link">
-                    <el-button type="success" plain>更多操作</el-button>
-                  </span>
-                  <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item>
-                      <span style="display:inline-block;padding:0 10px;" @click="handleClean(scope.row)">清除</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item divided>
-                      <span style="display:inline-block;padding:0 10px;" @click="handleRestore(scope.row)">恢复</span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>-->
               </template>
             </el-table-column>
           </el-table>
@@ -415,88 +358,188 @@
           <!--<div id="deviceComp" style="width: 100%;height:440px;"></div>-->
           <div class='chart-container' style="height: 100%">
             <deployBindER id="ER" :detaillist="nodeDetail" :currentNodeInfo="currentNodeInfo"></deployBindER>
+            <!--<fullScreenER></fullScreenER>-->
           </div>
         </div>
       </template>
     </split-pane>
 
-    <!--新建部署设计节点对话框-->
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="40%">
-      <el-form :rules="deployRules" ref="dataForm" :model="temp" label-width="100px" style='width: 80%; margin:0 auto;'>
-        <el-form-item :label="$t('table.deployPlanName')">
-          <el-input v-model="temp.name"></el-input>
-        </el-form-item>
-        <el-form-item :label="$t('table.deployPlanDesc')" prop="description">
-          <el-input v-model="temp.description"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button v-if="dialogStatus=='create'" type="primary" @click="createDeployplanNode" :loading="creDepLoading">
-          {{$t('table.confirm')}}
-        </el-button>
-        <el-button v-else type="primary" @click="updateData" :loading="upDepLoading">{{$t('table.confirm')}}</el-button>
+    <!--部署设计节点选择组件对话框-->
+    <el-dialog title="选择组件" :visible.sync="selectCompDialogVisible" width="60%" class="no-padding-dialog">
+      <span id="compClickTag"></span>
+      <el-input style="width: 200px;position: absolute;top: 16px;left: 100px;" class="filter-item" placeholder="请输入组件名称"
+                v-model="searchAbleCompQuery">
+      </el-input>
+      <el-button size="mini" type="primary" style="position: absolute;top: 15px; left: 316px;" @click="handleCompCreate">添加组件
+      </el-button>
+      <div class="selectDetail" style="min-height: 300px;overflow: hidden;">
+        <div class="ableToSelectComp" style="width:50%;float: left;padding: 10px;">
+          <el-table :data="listAbleComp" border fit
+                    max-height="600"
+                    highlight-current-row
+                    stripe
+                    @expand-change="getCompHis"
+                    :row-key="getRowKeysComp"
+                    :expand-row-keys="compExpands"
+                    style="width: 100%;">
+            <el-table-column align="left" width="40" type="expand">
+              <template slot-scope="props">
+                <!--<el-table
+                  border
+                  stripe highlight-current-row
+                  :data="props.row.hisVersion"
+                  style="padding: 0 0"
+                  :show-header="false"
+                >
+                  <el-table-column align="center" width="40">
+                    <template slot-scope="scope">
+                      <span><svg-icon icon-class="history1"></svg-icon></span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="名称" align="left">
+                    <template slot-scope="scope">
+                      <span>{{scope.row.createTime}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" align="center" width="80">
+                    <template slot-scope="scope">
+                      <el-button size="mini" type="success" @click="handleBindComp(scope.row.id, scope.row, props.row)" :loading="props.row.binding || scope.row.binding">绑定</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>-->
+                <div v-loading="props.row.hisVersion == undefined" style="min-height: 60px;" element-loading-text="正在查询历史组件" element-loading-spinner="el-icon-loading">
+                  <div v-for="item in props.row.hisVersion" style="width: 100%;padding: 10px;" class="comp-his">
+                    <span style="display: inline-block;width: 70%;">
+                      <svg-icon icon-class="history1"></svg-icon>
+                      {{item.createTime}}
+                    </span>
+                    <span style="display: inline-block;width: 20%;text-align: center">
+                    <!--<el-button size="mini" type="success" @click="handleBindComp(item.id, item, props.row)" :loading="props.row.binding || item.binding">绑定</el-button>-->
+                    <el-tooltip content="绑定此版本" effect="dark" placement="top-start">
+                      <el-button type="text" @click="handleBindComp(item.id, item, props.row)" :loading="props.row.binding || item.binding">
+                        <svg-icon icon-class="bind" style="font-size: 16px;position: relative;top: 2px;"></svg-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </span>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="可选组件" min-width="120" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <el-tooltip placement="top">
+                  <div slot="content">版本：{{scope.version}}<br/>相对路径：{{scope.row.relativePath}}</div>
+                  <span>{{scope.row.name}}</span>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="操作" width="80" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <el-button type="success" size="mini" @click="findNewestAndBind(scope.row)" :loading="scope.row.binding">绑定</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div class="selectedComp" style="width:50%;float: left;padding: 10px;">
+          <el-table :data="bindedCompList" border fit
+                    highlight-current-row
+                    max-height="600"
+                    stripe
+                    style="width: 100%;">
+            <el-table-column align="center" label="已绑定组件" min-width="120" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <span>{{scope.row.componentHistoryEntity.name}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="当前版本创建时间" min-width="80" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <span>{{scope.row.componentHistoryEntity.createTime}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" label="操作" width="100" class-name="small-padding fixed-width">
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" content="解除绑定" placement="top">
+                  <el-button type="text" style="color: #f56c6c;font-size: 17px;margin-right: 6px;" @click="unbindComp(scope.row)"><svg-icon icon-class="delete"></svg-icon></el-button>
+                  <!--<span style="color: #f56c6c;font-size: 17px;margin-right: 6px;cursor: pointer;" @click="unbindComp(scope.row)" ><svg-icon icon-class="delete"></svg-icon></span>-->
+                </el-tooltip>
+                <el-popover
+                  placement="left"
+                  width="900"
+                  @show="chekHisVersion(scope.row)"
+                  trigger="click">
+                  <span slot="reference" @click="handleSwithCompVersion(scope.row)" class="icon-show-popover">
+                    <el-tooltip class="item" effect="dark" :content="scope.row.popoverVisible ? '关闭窗口' : '切换版本'" placement="top">
+                      <span style="color: #409eff;font-size: 17px;cursor: pointer;margin-right: 6px;"><svg-icon icon-class="open"></svg-icon></span>
+                    </el-tooltip>
+                  </span>
+                  <el-table
+                    border
+                    stripe highlight-current-row
+                    :data="scope.row.hisVersion"
+                    style="padding: 0 0"
+                    :show-header="false"
+                  >
+                    <el-table-column align="center" width="40">
+                      <template slot-scope="scope">
+                        <span><svg-icon icon-class="history1"></svg-icon></span>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="名称" align="left">
+                      <template slot-scope="scope">
+                        <span>{{scope.row.createTime}}</span>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="操作" align="center" width="80px">
+                      <template slot-scope="scope">
+                        <el-button size="mini" @click="switchCompHis(scope.row)" type="success">绑定</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </el-popover>
+                <el-tooltip class="item" effect="dark" content="部署时使用最新版本" placement="top" v-if="!scope.row.keepLatest">
+                  <span class="icon-update" @click="keepUpdated(scope.row, true)"><svg-icon icon-class="update"></svg-icon></span>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" content="部署时使用当前版本" placement="top" v-else>
+                  <span class="icon-update" @click="keepUpdated(scope.row, false)"><svg-icon icon-class="update-disable"></svg-icon></span>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </div>
+      <el-dialog title="添加组件" class="filesDialog" :visible.sync="compDialogFormVisible" top="7vh" width="86%" append-to-body="">
+        <el-form :rules="componentRules" ref="dataCompForm" :model="compTemp" label-width="100px"
+                 style='width: 100%;height: 100%'>
+          <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
+            <el-form-item :label="$t('table.compName')" prop="name">
+              <el-input v-model="compTemp.name"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('table.compVersion')" prop="version">
+              <el-input v-model="compTemp.version"></el-input>
+            </el-form-item>
+            <el-form-item :label="$t('table.compPath')" prop="relativePath">
+              <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+                <el-input v-model="compTemp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+              </el-tooltip>
+            </el-form-item>
+            <el-form-item :label="$t('table.compDesc')" prop="desc">
+              <el-input v-model="compTemp.description"></el-input>
+            </el-form-item>
+            <div class="button-container" style="float: right;">
+              <el-button @click="compDialogFormVisible = false">关闭</el-button>
+              <el-button v-if="showConfirmBtn" type="primary" @click="createComp" :loading="creComLoading">{{$t('table.confirm')}}</el-button>
+            </div>
+          </div>
+          <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px"
+               v-loading="managerLoading"
+               element-loading-text="请先填写组件的基本信息并创建"
+          >
+            <comFileManage ref="createComFile" :selectCompId="selectedCompId" :selectCompName="selectedCompName"></comFileManage>
+          </div>
+        </el-form>
+      </el-dialog>
     </el-dialog>
-    <!--基线新建对话框-->
-    <el-dialog title="请填写基线信息" :visible.sync="baselineVisible" width="40%">
-      <el-form :rules="baselineRules" ref="baselineForm" :model="baselineTemp" label-position="right"
-               label-width="100px" style='width: 80%; margin:0 auto;'>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="baselineTemp.name"></el-input>
-        </el-form-item>
-        <el-form-item label="描述" prop="desc">
-          <el-input v-model="baselineTemp.description"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="baselineVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button type="primary" @click="createBaseline" :loading="creBasLoading">{{$t('table.confirm')}}</el-button>
-      </div>
-    </el-dialog>
-    <!--基线详情对话框-->
-    <el-dialog :title="deployName" :visible.sync="baselineDetailVisible">
-      <el-table :key='tableKey' :data="baslineList" v-loading="listLoading" element-loading-text="给我一点时间" border fit
-                highlight-current-row
-                style="width: 100%">
 
-        <el-table-column align="center" label="基线名称" width="200">
-          <template slot-scope="scope">
-            <span>{{scope.row.name}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="基线描述" min-width="200">
-          <template slot-scope="scope">
-            <span>{{scope.row.description}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center" label="操作" width="200">
-          <template slot-scope="scope">
-            <el-button type="primary" @click="handleModifyBaseline(scope.row)">编辑</el-button>
-            <el-button type="danger" @click="deleteBaseline(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div slot="footer" class="dialog-footer">
-        <!--<el-button @click="baselineDetailVisible = false">关闭</el-button>-->
-      </div>
-    </el-dialog>
-    <!--修改基线对话框-->
-    <el-dialog title="请填写基线信息" :visible.sync="modifyBaselineVisible" width="40%">
-      <el-form :rules="baselineRules" ref="baselineForm" :model="modifyBaselineTemp" label-position="right"
-               label-width="70px" style='width: 80%; margin:0 auto;'>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="modifyBaselineTemp.name"></el-input>
-        </el-form-item>
-        <el-form-item label="描述" prop="desc">
-          <el-input v-model="modifyBaselineTemp.description"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="modifyBaselineVisible = false">{{$t('table.cancel')}}</el-button>
-        <el-button type="primary" @click="modifyBaseline" :loading="upBasLoading">{{$t('table.confirm')}}</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -512,12 +555,6 @@
     restoreDeployplan
   } from '@/api/deployplan'
   import {
-    saveDeploymentDesignSnapshots,
-    getDeploymentDesignSnapshots,
-    deleteDeploymentDesignSnapshots,
-    modifySnapshots
-  } from '@/api/baseline'
-  import {
     deployNodeList,
     deleteDeployplanNode,
     createDeployplanNode,
@@ -528,7 +565,11 @@
     bindCompToNode,
     bindCompsToNode,
     bindCompHisToNode,
-    deleteBindDetail
+    deleteBindDetail,
+    getAvailableComps,
+    bindSingleCompHisToNode,
+    updateCompHisToNode,
+    keepLatest
   } from '@/api/deployDesignNode'
   import { Loading } from 'element-ui'
   import {compList} from '@/api/component'
@@ -539,12 +580,13 @@
   import waves from '@/directive/waves' // 水波纹指令
   import splitPane from 'vue-splitpane'
   import deployBindER from '../deployBind/deployBindER'
+  import fullScreenER from '../deployBind/fullScreenER'
   import Sortable from 'sortablejs'
   import Vue from 'vue'
 
   export default {
     name: 'designNode',
-    components: {splitPane, deployBindER, comFileManage},
+    components: {splitPane, deployBindER, comFileManage, fullScreenER},
     directives: {
       waves
     },
@@ -584,7 +626,6 @@
         deployName: '',
         tableKey: 0,
         list: [],
-        baslineList: [],
         listLoading: true,
         listQuery: {
           page: 0,
@@ -596,8 +637,6 @@
         pagesize: 10,//每页的数据条数
         currentPage: 1,//默认开始页面
         sortable: null,
-        oldList: [],
-        newList: [],
         temp: {
           id: '',
           name: '',
@@ -621,16 +660,6 @@
         baselineVisible: false,
         baselineDetailVisible: false,
         modifyBaselineVisible: false,
-        baselineTemp: {
-          id: '',
-          name: '',
-          description: ''
-        },
-        modifyBaselineTemp: {
-          id: '',
-          name: '',
-          description: ''
-        },
         dialogStatus: '',
         textMap: {
           update: '编辑',
@@ -666,6 +695,7 @@
         upBasLoading: false,
         searchQuery: '',
         searchQueryDevice: '',
+        searchAbleCompQuery: '',
         errorMessage: '操作失败！',
         deviceList: [],
         deviceTotal: 0,
@@ -705,10 +735,14 @@
         creComLoading: false,
         managerLoading: false,
         compDialogFormVisible: false,
+        selectCompDialogVisible: false,
         selectedCompId: '',
         selectedCompName: '',
         showConfirmBtn: true,
-        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test'
+        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test',
+        availableCompList: [],
+        bindedCompList: [],
+        currentBindedComHisId: ''
       }
     },
     created() {
@@ -778,44 +812,6 @@
           // this.getList2()
         })
       },
-      createDeployplanNode() {
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            this.creDepLoading = true
-            let projectId = this.getCookie('projectId');
-            let formData = new FormData();
-
-            formData.append('name', this.temp.name);
-            formData.append('description', this.temp.description);
-
-            createDeployplanNode(formData, this.deployPlanId).then(() => {
-              this.list.unshift(this.temp)
-              this.creDepLoading = false
-              this.dialogFormVisible = false
-              this.$notify({
-                title: '成功',
-                message: '创建成功',
-                type: 'success',
-                duration: 2000
-              })
-              this.getList()
-            }).catch((error) => {
-              this.errorMessage = '操作失败！'
-              this.creDepLoading = false
-              if (error.response.data.message) {
-                this.errorMessage = error.response.data.message
-              }
-              this.$notify({
-                title: '创建失败',
-                message: this.errorMessage,
-                type: 'error',
-                duration: 2000
-              })
-            })
-          }
-        })
-      },
-
       //添加设备
       resetDeviceTemp() {
         this.deviceTemp = {
@@ -868,7 +864,6 @@
           }
         })
       },
-
       //添加组件
       resetCompTemp() {
         this.compTemp = {
@@ -923,6 +918,7 @@
                 duration: 2000
               })
               this.getList()
+              this.getAbleComps(this.currentNodeId)
             }).catch((error) => {
               this.showConfirmBtn = true
               this.creComLoading = false
@@ -975,7 +971,14 @@
         })
       },
       bindDevice() {
-        this.bindDeviceLoading = true
+        if(this.bindDeviceId.length == 0) {
+          this.$message({
+            message: '您还未选择设备',
+            type: 'error'
+          })
+          this.bindDeviceLoading = false
+          return
+        }
         if (this.bindDeviceId.length > 1) {
           this.$message({
             message: '只能选择一台设备',
@@ -984,6 +987,7 @@
           this.bindDeviceLoading = false
           return
         } else if (this.bindDeviceId.length == 1) {
+          this.bindDeviceLoading = true
           bindDeviceToNode(this.currentNodeId, this.bindDeviceId[0].id).then((res) => {
             this.$notify({
               title: '成功',
@@ -1048,7 +1052,7 @@
       checkNodeDevice() {
         this.deviceLoading = true
         let projectId = this.getCookie('projectId');
-        getAllDevices(projectId).then(response => {
+        /*getAllDevices(projectId).then(response => {
           this.deviceList = response.data.data
           this.deviceTotal = response.data.data.length
           this.searchQueryDevice = ''
@@ -1063,10 +1067,13 @@
           }).catch(() => {
             this.deviceLoading = false
           })
+        })*/
+        getAllBindDevices(this.deployPlanId).then((res) => {
+          this.deviceLoading = false
+          this.currentDeviceList = res.data.data
+        }).catch(() => {
+          this.deviceLoading = false
         })
-      },
-      handleSelectRowDevice(val) {
-
       },
       handleSizeChange2(val) {
         // this.listQuery2.size = val
@@ -1119,9 +1126,225 @@
           }
         })
       },
+
+
+
+      //绑定组件相关操作
+      handleSelectComps(row) {
+        this.currentNodeId = row.id
+        this.getAbleComps(row.id)
+        this.compExpands = []
+        getNodeDetail(this.currentNodeId).then((res) => {
+          this.bindedCompList = res.data.data
+        })
+        this.selectCompDialogVisible = true
+      },
+      getAbleComps(id) {
+        getAvailableComps(id).then((res) => {
+          this.availableCompList = res.data.data
+        })
+      },
+      getCompHis(row) {
+        let indexOfId = this.compExpands.indexOf(row.id)
+        if (indexOfId !== -1) {
+          this.compExpands.splice(indexOfId, 1)
+          return
+        }
+        this.compExpands.push(row.id)
+        if (!row.hisVersion) {
+          row.loading = true
+          compHisVersions(row.id).then((res) => {
+            this.availableCompList.forEach((item, index) => {
+              if(item.id === row.id) {
+                row.hisVersion = res.data.data
+                Vue.set(this.availableCompList, index, this.availableCompList[index])
+                return
+              }
+            })
+          })
+        }
+      },
+      handleBindComp(id, row, fatherRow) {
+        fatherRow.binding = true
+        this.availableCompList.forEach((itemA, indexA) => {
+          if(itemA.id === fatherRow.id) {
+            console.log(itemA.id)
+            this.$set(this.availableCompList, indexA, fatherRow)
+          }
+        })
+        bindSingleCompHisToNode(this.currentNodeId, id).then((res) => {
+          this.availableCompList.forEach((item,index) => {
+            if(item.id === res.data.data.componentEntity.id) {
+              let indexOfComp = this.compExpands.indexOf(res.data.data.componentEntity.id)
+              if(indexOfComp !== -1) {
+                this.compExpands.splice(indexOfComp, 1)
+              }
+              this.availableCompList.splice(index, 1)
+              getNodeDetail(this.currentNodeId).then((res) => {
+                this.bindedCompList = res.data.data
+                this.nodeDetail = res.data.data
+              })
+            }
+          })
+        }).catch(() => {
+          fatherRow.binding = false
+          this.availableCompList.forEach((itemA, indexA) => {
+            if(itemA.id === fatherRow.id) {
+              this.$set(this.availableCompList, indexA, fatherRow)
+            }
+          })
+          this.$notify({
+            title: '失败',
+            message: '组件绑定失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      bindCompLatest(id, fatherRow) {
+        fatherRow.binding = true
+        this.availableCompList.forEach((itemA, indexA) => {
+          if(itemA.id === fatherRow.id) {
+            this.$set(this.availableCompList, indexA, fatherRow)
+          }
+        })
+        bindSingleCompHisToNode(this.currentNodeId, id).then((res) => {
+          this.availableCompList.forEach((item,index) => {
+            if(item.id === res.data.data.componentEntity.id) {
+              let indexOfComp = this.compExpands.indexOf(res.data.data.componentEntity.id)
+              if(indexOfComp !== -1) {
+                this.compExpands.splice(indexOfComp, 1)
+              }
+              this.availableCompList.splice(index, 1)
+              getNodeDetail(this.currentNodeId).then((res) => {
+                this.bindedCompList = res.data.data
+                this.nodeDetail = res.data.data
+              })
+            }
+          })
+        }).catch(() => {
+          fatherRow.binding = false
+          this.availableCompList.forEach((itemA, indexA) => {
+            if(itemA.id === fatherRow.id) {
+              this.$set(this.availableCompList, indexA, fatherRow)
+            }
+          })
+          this.$notify({
+            title: '失败',
+            message: '组件绑定失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
       getRowKeysComp(row) {
         return row.id
       },
+      unbindComp(row) {
+        if(row.unBinding === true) {
+          return
+        }
+        row.unBinding = true
+        deleteBindDetail(row.id).then((res) => {
+          row.unBinding = false
+          this.availableCompList.push(row.componentEntity)
+          getNodeDetail(this.currentNodeId).then((res) => {
+            this.bindedCompList = res.data.data
+            this.nodeDetail = res.data.data
+          })
+        }).catch(() => {
+          row.unBinding = false
+          this.$notify({
+            title: '失败',
+            message: '组件解绑失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      handleSwithCompVersion(row) {
+        this.currentBindedComHisId = row.id
+      },
+      chekHisVersion(row) {
+        compHisVersions(row.componentEntity.id).then((res) => {
+          this.bindedCompList.forEach((item, index) => {
+            if(item.id === row.id) {
+              row.hisVersion = res.data.data
+              row.hisVersion.forEach((comps, indexOf) => {
+                if (comps.id === row.componentHistoryEntity.id) {
+                  row.hisVersion.splice(indexOf, 1)
+                }
+              })
+              Vue.set(this.bindedCompList, index, this.bindedCompList[index])
+              return
+            }
+          })
+        })
+      },
+      switchCompHis(row) {
+        updateCompHisToNode(this.currentBindedComHisId, row.id).then((res) => {
+          document.getElementById('compClickTag').click()
+          getNodeDetail(this.currentNodeId).then((res) => {
+            this.bindedCompList = res.data.data
+            this.nodeDetail = res.data.data
+          })
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '版本切换失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      findNewestAndBind(row) {
+        let query = {
+          page: 0,
+            size: 10,
+            limit: 10
+        }
+        compHisVersion(row.id, query).then((res) => {
+          if(res.data.data.totalElements > 0) {
+            let id = res.data.data.content[0].id
+            this.bindCompLatest(id, row)
+          } else {
+            return
+          }
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: '获取组件信息失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      keepUpdated(row, flag) {
+        if(row.editing === true) {
+          return
+        }
+        row.editing = true
+        keepLatest(row.id, flag).then((res) => {
+          row.editing = false
+          row.keepLatest = res.data.data.keepLatest
+          this.$notify({
+            title: '成功',
+            message: '',
+            type: 'success',
+            duration: 2000
+          })
+        }).catch(() => {
+          row.editing = false
+          this.$notify({
+            title: '失败',
+            message: '',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      },
+      // 绑定相关操作结束
+
       beforeSubmit: function (rowId, row) { //绑定前的准备工作 绑定前获取设备的id，获取所选部署设计的id
         this.componentHisIds = []
         this.componentIds = []
@@ -1331,15 +1554,6 @@
           }
         }
       },
-      /*getSelectHisId(row, fatherRow) {
-        if(fatherRow.selectedHisId && fatherRow.selectedHisId.length === 0) {
-          fatherRow.selectedHisId = row.id
-        } else if(!fatherRow.selectedHisId) {
-          fatherRow.selectedHisId = row.id
-        } else if(fatherRow.selectedHisId === row.id) {
-          fatherRow.selectedHisId = ''
-        }
-      },*/
       checkHisIsBind(row) {
         row.isBind = false
         for (let i = 0; i < this.listComp.length; i++) {
@@ -1382,18 +1596,7 @@
           this.beforeSubmit(this.currentNodeId)
           getNodeDetail(this.currentNodeId).then((res) => {
             this.nodeDetail = res.data.data
-            /*if(res.data.data.length > 0) {
-              this.nodeDetail[0].currentNodeInfo = res.data.data[0].deploymentDesignNodeEntity
-            } else {
-            }*/
           })
-          /*getDeployComLists(this.deployPlanId, this.deviceCHId).then((res) => {
-            this.bindedDeviceList = res.data.data
-          })*/
-          /*getAllBindDevices(this.deployPlanId).then((res) => {
-            this.bindedDeviceList = res.data.data
-          })*/
-          // document.getElementById('clicktag').click()
         }).catch(() => {
           this.$notify({
             title: '失败',
@@ -1416,21 +1619,6 @@
           this.total = response.data.data.totalElements
         })
       },
-      getBaslines(id) {
-        getDeploymentDesignSnapshots(id).then((res) => {
-          this.baslineList = res.data.data.content
-        })
-      },
-      checkBaselines(row) {
-        this.selectedId = row.id
-        this.baselineDetailVisible = true
-        this.deployName = row.name + '基线详情'
-        this.getBaslines(row.id)
-      },
-      handleFilter() {
-        this.listQuery.page = 1
-        this.getList()
-      },
       handleSizeChange(val) {
         this.listQuery.size = val
         this.pagesize = val
@@ -1450,13 +1638,6 @@
       },
       resetTemp() {
         this.temp = {
-          name: '',
-          description: ''
-        }
-      },
-      resetBaseLineTemp() {
-        this.baselineTemp = {
-          id: '',
           name: '',
           description: ''
         }
@@ -1520,25 +1701,6 @@
           }
         })
       },
-      setSort() {
-        const el = document.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
-        this.sortable = Sortable.create(el, {
-          ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
-          setData: function (dataTransfer) {
-            dataTransfer.setData('Text', '')
-            // to avoid Firefox bug
-            // Detail see : https://github.com/RubaXa/Sortable/issues/1012
-          },
-          onEnd: evt => {
-            const targetRow = this.list.splice(evt.oldIndex, 1)[0]
-            this.list.splice(evt.newIndex, 0, targetRow)
-
-            // for show the changes, you can delete in you code
-            const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
-            this.newList.splice(evt.newIndex, 0, tempIndex)
-          }
-        })
-      },
       handleDelete(row) {
         let id = row.id;
         this.$confirm('确认删除吗？', '提示', {
@@ -1568,184 +1730,6 @@
             message: '已取消删除'
           })
         })
-      },
-      handleCreateBaseline(row) {
-        this.resetBaseLineTemp()
-        this.baselineVisible = true
-        this.selectedId = row.id
-        this.$nextTick(() => {
-          this.$refs['baselineForm'].clearValidate()
-        })
-      },
-      createBaseline() {
-        this.$refs['baselineForm'].validate((valid) => {
-          if (valid) {
-            this.creBasLoading = true
-            let formData = new FormData();
-
-            formData.append('name', this.baselineTemp.name);
-            formData.append('description', this.baselineTemp.description);
-            saveDeploymentDesignSnapshots(this.selectedId, formData).then(() => {
-              this.creBasLoading = false
-              this.baselineVisible = false
-              this.$notify({
-                title: '成功',
-                message: '基线创建成功',
-                type: 'success',
-                duration: 2000
-              })
-            }).catch((error) => {
-              this.creBasLoading = false
-              this.errorMessage = '操作失败！'
-              if (error.response.data.message) {
-                this.errorMessage = error.response.data.message
-              }
-              this.$notify({
-                title: '失败',
-                message: this.errorMessage,
-                type: 'error',
-                duration: 2000
-              })
-            })
-          }
-        })
-      },
-      deleteBaseline(row) {
-        deleteDeploymentDesignSnapshots(row.id).then((res) => {
-          this.$notify({
-            title: '成功',
-            message: '删除成功',
-            type: 'success',
-            duration: 2000
-          })
-          this.getBaslines(this.selectedId)
-        }).catch(() => {
-          this.$notify({
-            title: '失败',
-            message: '基线删除失败',
-            type: 'error',
-            duration: 2000
-          })
-        })
-      },
-      handleModifyBaseline(row) {
-        this.modifyBaselineVisible = true
-        this.modifyBaselineTemp = {
-          id: row.id,
-          name: row.name,
-          description: row.description
-        }
-      },
-      modifyBaseline() {
-        this.upBasLoading = true
-        let data = {
-          'name': this.modifyBaselineTemp.name,
-          'description': this.modifyBaselineTemp.description,
-        }
-        var qs = require('qs');
-        let datapost = qs.stringify(data)
-        modifySnapshots(this.modifyBaselineTemp.id, datapost).then(() => {
-          this.upBasLoading = false
-          this.modifyBaselineVisible = false
-          this.getBaslines(this.selectedId)
-          this.$notify({
-            title: '成功',
-            message: '修改成功',
-            type: 'success',
-            duration: 2000
-          })
-        }).catch((error) => {
-          this.upBasLoading = false
-          this.errorMessage = '操作失败！'
-          if (error.response.data.message) {
-            this.errorMessage = error.response.data.message
-          }
-          this.$notify({
-            title: '修改失败',
-            message: this.errorMessage,
-            type: 'error',
-            duration: 2000
-          })
-        })
-      },
-      handleMonitor(row) {
-        this.$router.push({
-          name: 'monitor',
-          params: {
-            name: row.name,
-            id: row.id
-          }
-        })
-      },
-      showHistory() {
-        this.getHis()
-      },
-      showNow() {
-        this.getList()
-      },
-      handleClean(row) {
-        this.$confirm('确认彻底删除此部署设计吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.listLoading = true
-          cleanDeployplan(row.id).then(() => {
-            this.listLoading = false
-            this.showHistory()
-            this.$notify({
-              title: '成功',
-              message: '清除成功！',
-              type: 'success',
-              duration: 2000
-            })
-          }).catch(() => {
-            this.listLoading = false
-            this.$notify({
-              title: '失败',
-              message: '清除失败！',
-              type: 'error',
-              duration: 2000
-            })
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消清除'
-          })
-        })
-      },
-      handleRestore(row) {
-        this.$confirm('确认恢复此部署设计吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.listLoading = true
-          restoreDeployplan(row.id).then(() => {
-            this.listLoading = false
-            this.showHistory()
-            this.$notify({
-              title: '成功',
-              message: '恢复成功！',
-              type: 'success',
-              duration: 2000
-            })
-          }).catch(() => {
-            this.listLoading = false
-            this.$notify({
-              title: '失败',
-              message: '恢复失败！',
-              type: 'error',
-              duration: 2000
-            })
-          })
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消恢复'
-          })
-        })
       }
     },
     computed: {
@@ -1771,6 +1755,12 @@
           return item.name.toLowerCase().indexOf(self.searchQuery2.toLowerCase()) !== -1;
         })
       },
+      listAbleComp () {
+        let self = this;
+        return self.availableCompList.filter(function (item) {
+          return item.name.toLowerCase().indexOf(self.searchAbleCompQuery.toLowerCase()) !== -1;
+        })
+      },
       listenProId() {
         return this.$store.state.app.projectId
       },
@@ -1783,6 +1773,13 @@
             if (row.id === fatherRow.bindHisComp.id) {
               row.isBind = true
             }
+            return true
+          }
+        }
+      },
+      computedBinding: function() {
+        return function(row) {
+          if(row.binding === true) {
             return true
           }
         }
@@ -1846,6 +1843,20 @@
 
   .el-button + .el-button {
     margin-left: 0;
+  }
+  .icon-update {
+    color: #f56c6c;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 26px;
+    position: relative;
+    top: 2px;
+  }
+  .comp-his:hover {
+    background: rgb(245, 247, 250) !important;
+  }
+  .comp-his:nth-child(odd) {
+    background: rgb(250,250,250);
   }
 </style>
 

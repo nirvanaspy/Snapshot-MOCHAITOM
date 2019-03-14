@@ -122,3 +122,42 @@
      max-width: 540px;
    }
  }
+
+
+ .scanResDialog .el-tabs__content {
+   height: 500px;
+   overflow-y: scroll;
+ }
+ .scanResDialog {
+   .el-dialog {
+     .el-dialog__body {
+       padding-top: 0;
+     }
+     min-width: 620px;
+   }
+   .searchResTable {
+     height: 500px;
+     overflow-y: scroll;
+   }
+ }
+
+ .no-padding-dialog {
+   .el-dialog {
+     .el-dialog__body {
+       padding-top: 0;
+     }
+   }
+   .filter-item {
+     .el-input__inner {
+       border-radius: 100px;
+       height: 30px;
+       line-height: 30px;
+     }
+   }
+ }
+
+ .ableToSelectComp {
+   .el-table__expanded-cell {
+     padding: 4px 30px;
+   }
+ }

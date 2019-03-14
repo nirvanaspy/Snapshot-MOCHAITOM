@@ -24,3 +24,18 @@ export function deployNode(id) {
     method: 'put'
   })
 }
+
+export function deployAll(id) {
+  return request({
+    url: 'deploymentdesigns/' + id + '/deploy',
+    method: 'put'
+  })
+}
+
+export function deployByDeploymentDesignDetailId(id) {
+  return request({
+    url: 'deploymentdesigndetails/' + id + '/deploy',
+    method: 'put'
+  })
+}
+

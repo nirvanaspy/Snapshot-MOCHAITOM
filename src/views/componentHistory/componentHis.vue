@@ -23,12 +23,12 @@
           <span>{{scope.row.version}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="100px" :label="$t('table.compPath')">
+      <el-table-column width="100px" :label="$t('table.compPath')">
         <template slot-scope="scope">
           <span>{{scope.row.relativePath}}</span>
         </template>
       </el-table-column>
-      <el-table-column min-width="100px" :label="$t('table.compDesc')">
+      <el-table-column width="100px" :label="$t('table.compDesc')">
         <template slot-scope="scope">
           <span>{{scope.row.description}}</span>
         </template>
@@ -97,54 +97,58 @@
                :visible.sync="dialogFormVisible"
                top="7vh" width="86%"
                class="filesDialog"
+               append-to-body
     >
-
-        <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
-                 style='width: 100%;height: 100%'>
-          <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
-            <el-form-item :label="$t('table.compName')" prop="name">
-              <el-input v-model="temp.name" disabled="disabled"></el-input>
-            </el-form-item>
-            <el-form-item :label="$t('table.compVersion')" prop="version">
-              <el-input v-model="temp.version" disabled="disabled"></el-input>
-            </el-form-item>
-            <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-input v-model="temp.relativePath" placeholder="/test/，必须以斜杠开头，斜杠结尾" disabled="disabled"></el-input>
-            </el-form-item>
-            <el-form-item :label="$t('table.compDesc')" prop="desc">
-              <el-input v-model="temp.description" disabled="disabled"></el-input>
-            </el-form-item>
-            <div class="button-container">
-              <el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
-              <!--<el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>-->
-            </div>
-            <!--去除修改组件时的文件上传模块-->
-            <!--<el-form-item :label="$t('table.compUpload')" prop="fileAll">
-            <uploader :options="options"
-                      :autoStart="autoStart"
-                      :file-status-text="statusText"
-                      :started="started"
-                      ref="uploader"
-                      class="uploader-example">
-              <uploader-unsupport></uploader-unsupport>
-              <uploader-drop>
-                <p>拖拽文件到此处或</p>
-                <uploader-btn>选择文件</uploader-btn>
-                <uploader-btn :directory="true">选择文件夹</uploader-btn>
-              </uploader-drop>
-              <uploader-list id="fileUp"></uploader-list>
-            </uploader>
-          </el-form-item>-->
+      <div slot="title">
+        <svg-icon icon-class="history1"></svg-icon>
+        组件历史版本详情
+      </div>
+      <el-form :rules="componentRules" ref="dataForm" :model="temp" label-width="100px"
+               style='width: 100%;height: 100%'>
+        <div style="height: 90%;overflow-y: auto;width: 40%;float: left;padding-right: 16px;position: relative;">
+          <el-form-item :label="$t('table.compName')" prop="name">
+            <el-input v-model="temp.name" disabled="disabled"></el-input>
+          </el-form-item>
+          <el-form-item :label="$t('table.compVersion')" prop="version">
+            <el-input v-model="temp.version" disabled="disabled"></el-input>
+          </el-form-item>
+          <el-form-item :label="$t('table.compPath')" prop="relativePath">
+            <el-input v-model="temp.relativePath" placeholder="/test/，必须以斜杠开头，斜杠结尾" disabled="disabled"></el-input>
+          </el-form-item>
+          <el-form-item :label="$t('table.compDesc')" prop="desc">
+            <el-input v-model="temp.description" disabled="disabled"></el-input>
+          </el-form-item>
+          <div class="button-container">
+            <el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>
+            <!--<el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>-->
           </div>
-          <!--文件管理模块-->
-          <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px">
-            <!--<label style="width: 100%;font-size: 14px;">组件详细信息</label>-->
-            <comFileManage :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
-          </div>
-        </el-form>
+          <!--去除修改组件时的文件上传模块-->
+          <!--<el-form-item :label="$t('table.compUpload')" prop="fileAll">
+          <uploader :options="options"
+                    :autoStart="autoStart"
+                    :file-status-text="statusText"
+                    :started="started"
+                    ref="uploader"
+                    class="uploader-example">
+            <uploader-unsupport></uploader-unsupport>
+            <uploader-drop>
+              <p>拖拽文件到此处或</p>
+              <uploader-btn>选择文件</uploader-btn>
+              <uploader-btn :directory="true">选择文件夹</uploader-btn>
+            </uploader-drop>
+            <uploader-list id="fileUp"></uploader-list>
+          </uploader>
+        </el-form-item>-->
+        </div>
+        <!--文件管理模块-->
+        <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px">
+          <!--<label style="width: 100%;font-size: 14px;">组件详细信息</label>-->
+          <comFileManage :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
+        </div>
+      </el-form>
       <!--<div slot="footer" class="dialog-footer">-->
-        <!--<el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>-->
-        <!--<el-button type="primary" @click="updateData">{{$t('table.confirm')}}</el-button>-->
+      <!--<el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>-->
+      <!--<el-button type="primary" @click="updateData">{{$t('table.confirm')}}</el-button>-->
       <!--</div>-->
     </el-dialog>
   </div>
@@ -180,8 +184,8 @@
       return {
         isHistory: false,
         projectId: '',
-        componentId: '',
-        componentName: '',
+        /*componentId: '',
+        componentName: '',*/
         selectedId: '',
         selectdName: '',
         treeInfo: [],
@@ -270,12 +274,25 @@
         errorMessage: '操作失败'
       }
     },
+    props: {
+      componentId: {
+        default: '',
+        type: String
+      },
+      componentName: {
+        default: '',
+        type: String
+      }
+    },
     components: {
       comFileManage
     },
     created() {
-      this.componentId = this.$route.params.id
-      this.componentName = this.$route.params.name
+      /*this.componentId = this.$route.params.id
+      this.componentName = this.$route.params.name*/
+      if(this.componentId === '') {
+        return
+      }
       this.isHistory = false
       this.projectId = this.$store.getters.projectId
       this.userData.username = this.getCookie('username')
@@ -446,7 +463,7 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.exportUrl = service.defaults.baseURL + '/componenthistorys/' + id + '/export';
+        this.exportUrl = service.defaults.baseURL + '/componenthistorys/' + id + '/export';
 
         console.log(this.exportUrl);
         window.open(this.exportUrl);
@@ -639,7 +656,7 @@
       historyVersion(row) {
 
       }
-     },
+    },
     computed: {
       listA: function () {
         let self = this;

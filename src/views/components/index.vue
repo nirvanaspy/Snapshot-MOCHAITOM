@@ -4,7 +4,7 @@
       <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
         组件回收站
       </div>
-      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
+      <el-input style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
       </el-input>
       <el-button id="addComBtn"
                  v-show="!isHistory"
@@ -70,6 +70,29 @@
           <span>{{scope.row.description}}</span>
         </template>
       </el-table-column>
+      <el-table-column width="80px" label="历史版本" align="center">
+        <template slot-scope="scope">
+          <el-popover
+            placement="left"
+            width="900"
+            trigger="manual"
+            v-model="scope.row.popoverVisible">
+            <div class="popover-close">
+              <span class="close-icon" @click="closePopover(scope.row)">
+                <el-tooltip class="item" effect="dark" content="关闭" placement="top">
+                  <svg-icon icon-class="cancel"></svg-icon>
+                </el-tooltip>
+              </span>
+            </div>
+            <componentHis :componentId="scope.row.id" :componentName="scope.row.name" v-if="scope.row.popoverVisible"></componentHis>
+            <span slot="reference" @click="showPopover(scope.row)" class="icon-show-popover">
+              <el-tooltip class="item" effect="dark" :content="scope.row.popoverVisible ? '关闭窗口' : '查看组件历史 '" placement="top">
+                  <svg-icon icon-class="open"></svg-icon>
+                </el-tooltip>
+            </span>
+          </el-popover>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('table.actions')" width="140" class-name="small-padding fixed-width" align="center">
         <template slot-scope="scope">
           <!--<el-button type="primary" size="mini" @click="handleUpdate(scope.row)" style="margin-left: 10px;">{{$t('table.edit')}}</el-button>-->
@@ -95,9 +118,9 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
           <el-dropdown trigger="click" v-else>
@@ -199,12 +222,12 @@
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
             </el-form-item>
-            <el-form-item label="修改描述" prop="desc">
+            <!--<el-form-item label="修改描述" prop="desc">
               <el-input v-model="temp.modifyDescription"
                         type="textarea"
                         :rows="2"
                         placeholder="请输入修改描述"></el-input>
-            </el-form-item>
+            </el-form-item>-->
             <div class="button-container">
               <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
               <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
@@ -248,6 +271,7 @@
   import { Loading } from 'element-ui'
   import comFileManage from '@/views/fileManager/filecomp'
   import service from '@/utils/request'
+  import componentHis from '@/views/componentHistory/componentHis'
 
   export default {
     name: 'components',
@@ -366,7 +390,8 @@
       }
     },
     components: {
-      comFileManage
+      comFileManage,
+      componentHis
     },
     created() {
       this.isHistory = false
@@ -391,12 +416,20 @@
       handleSizeChange(val) {
         this.listQuery.limit = val
         this.pagesize = val
-        this.getList()
+        if(this.isHistory) {
+          this.showHistory()
+        } else {
+          this.getList()
+        }
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        this.getList()
+        if(this.isHistory) {
+          this.showHistory()
+        } else {
+          this.getList()
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -723,7 +756,7 @@
         compListHistory(this.projectId, this.listQuery).then(response => {
           this.isHistory = true
           this.list = response.data.data.content
-          this.total = response.data.total
+          this.total = response.data.data.totalElements
           this.listLoading = false
           this.hisBtnLoading = false
         }).catch(() => {
@@ -743,7 +776,7 @@
         this.hisBtnLoading = true
         compList(this.projectId,this.listQuery).then(response => {
           this.list = response.data.data.content
-          this.total = response.data.total
+          this.total = response.data.data.totalElements
           this.listLoading = false
           this.hisBtnLoading = false
           this.isHistory = false
@@ -830,6 +863,19 @@
             id: row.id
           }
         })
+      },
+      showPopover(row) {
+        if(row.popoverVisible == true) {
+          row.popoverVisible = false
+          return
+        }
+        this.list.forEach((item) => {
+          item.popoverVisible = false
+        })
+        row.popoverVisible = true
+      },
+      closePopover(row) {
+        row.popoverVisible = false
       }
      },
     computed: {
@@ -864,5 +910,16 @@
     bottom: 0;
     right: 15px;
   }
-
+  .popover-close {
+    display: block;
+    text-align: right;
+    font-size: 20px;
+  }
+  .close-icon {
+    cursor: pointer;
+  }
+  .icon-show-popover {
+    cursor: pointer;
+    color: #337ab7;
+  }
 </style>
