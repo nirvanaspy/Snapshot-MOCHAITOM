@@ -4,7 +4,7 @@
       <div v-show="isHistory" style="position: absolute;top: 88px;font-size: 12px;color: #ccc;">
         组件回收站
       </div>
-      <el-input @keyup.enter.native="handleFilter" style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
+      <el-input style="width: 240px;" class="filter-item" placeholder="组件名" v-model="searchQuery">
       </el-input>
       <el-button id="addComBtn"
                  v-show="!isHistory"
@@ -70,6 +70,29 @@
           <span>{{scope.row.description}}</span>
         </template>
       </el-table-column>
+      <el-table-column width="80px" label="历史版本" align="center">
+        <template slot-scope="scope">
+          <el-popover
+            placement="left"
+            width="900"
+            trigger="manual"
+            v-model="scope.row.popoverVisible">
+            <div class="popover-close">
+              <span class="close-icon" @click="closePopover(scope.row)">
+                <el-tooltip class="item" effect="dark" content="关闭" placement="top">
+                  <svg-icon icon-class="cancel"></svg-icon>
+                </el-tooltip>
+              </span>
+            </div>
+            <componentHis :componentId="scope.row.id" :componentName="scope.row.name" v-if="scope.row.popoverVisible"></componentHis>
+            <span slot="reference" @click="showPopover(scope.row)" class="icon-show-popover">
+              <el-tooltip class="item" effect="dark" :content="scope.row.popoverVisible ? '关闭窗口' : '查看组件历史 '" placement="top">
+                  <svg-icon icon-class="open"></svg-icon>
+                </el-tooltip>
+            </span>
+          </el-popover>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('table.actions')" width="140" class-name="small-padding fixed-width" align="center">
         <template slot-scope="scope">
           <!--<el-button type="primary" size="mini" @click="handleUpdate(scope.row)" style="margin-left: 10px;">{{$t('table.edit')}}</el-button>-->
@@ -95,9 +118,9 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <el-dropdown-item divided>
+              <!--<el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
-              </el-dropdown-item>
+              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
           <el-dropdown trigger="click" v-else>
@@ -153,7 +176,9 @@
             <el-input v-model="temp.version"></el-input>
           </el-form-item>
           <el-form-item :label="$t('table.compPath')" prop="relativePath">
-            <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+            <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头，文件夹名称结尾"></el-input>
+            </el-tooltip>
           </el-form-item>
           <el-form-item :label="$t('table.compDesc')" prop="desc">
             <el-input v-model="temp.description"></el-input>
@@ -190,11 +215,19 @@
               <el-input v-model="temp.version"></el-input>
             </el-form-item>
             <el-form-item :label="$t('table.compPath')" prop="relativePath">
-              <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              <el-tooltip class="item" effect="dark" :content="noticeContent" placement="top-start">
+                <el-input v-model="temp.relativePath" placeholder="/test，必须以斜杠开头"></el-input>
+              </el-tooltip>
             </el-form-item>
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
             </el-form-item>
+            <!--<el-form-item label="修改描述" prop="desc">
+              <el-input v-model="temp.modifyDescription"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="请输入修改描述"></el-input>
+            </el-form-item>-->
             <div class="button-container">
               <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
               <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
@@ -237,6 +270,8 @@
   import waves from '@/directive/waves' // 水波纹指令
   import { Loading } from 'element-ui'
   import comFileManage from '@/views/fileManager/filecomp'
+  import service from '@/utils/request'
+  import componentHis from '@/views/componentHistory/componentHis'
 
   export default {
     name: 'components',
@@ -246,7 +281,7 @@
     data() {
       const validatePath = (rule, value, callback) => {
         // let pattern = /^(\/([a-zA-Z0-9]+))*\/$/;
-        let pattern = /^(\/([a-zA-Z0-9]+))+$/;
+        let pattern = /^(\/([\u4e00-\u9fa5_a-zA-Z0-9]+))+$/;
 
         if(value.length==0){
           callback(new Error("请输入路径！"));
@@ -289,7 +324,8 @@
           version: '',
           relativePath: '',
           description: '',
-          fileAll: ''
+          fileAll: '',
+          modifyDescription: ''
         },
         dialogFormVisible: false,
         dialogStatus: '',
@@ -348,11 +384,14 @@
         errorMessage: '操作失败',
         showConfirmBtn: true,
         showConfirmBtn1: true,
-        originalCompTemp: null
+        originalCompTemp: null,
+        unEdited: false,
+        noticeContent: '此路径为组件在设备上的相对路径，必须以斜杠开头，文件夹名称结尾，例如/test'
       }
     },
     components: {
-      comFileManage
+      comFileManage,
+      componentHis
     },
     created() {
       this.isHistory = false
@@ -372,24 +411,25 @@
           this.list = response.data.data.content
           this.total = response.data.data.totalElements
           this.listLoading = false
-          /*this.oldList = this.list.map(v => v.id);
-          this.newList = this.oldList.slice();
-          this.$nextTick(() => {
-            this.setSort()
-          })*/
-
-          //console.log(this.list);
         })
       },
       handleSizeChange(val) {
         this.listQuery.limit = val
         this.pagesize = val
-        this.getList()
+        if(this.isHistory) {
+          this.showHistory()
+        } else {
+          this.getList()
+        }
       },
       handleCurrentChange(val) {
         this.listQuery.page = val - 1
         this.currentPage = val
-        this.getList()
+        if(this.isHistory) {
+          this.showHistory()
+        } else {
+          this.getList()
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -405,7 +445,8 @@
           version: '',
           relativePath: '',
           description: '',
-          fileAll: ''
+          fileAll: '',
+          modifyDescription: ''
         }
       },
       handleCreate() {
@@ -422,14 +463,7 @@
             this.$refs.createComFile.breadcrumbList = []
           }
           this.$refs['dataForm'].clearValidate()
-
-          /*console.log("文件信息");
-          console.log(this.$refs.uploader.uploader.files);
-          this.$refs.uploader.uploader.files.splice(0,this.$refs.uploader.uploader.files.length);
-          console.log(this.$refs.uploader.uploader.files);*/
-          // this.getList()
         })
-        // this.getList()
       },
       createData() {
         this.$refs['dataForm'].validate((valid) => {
@@ -451,12 +485,6 @@
             //开始上传后去掉暂停和删除按钮
             /*$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
             $(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");*/
-            //formData.append('enctype', "multipart/form-data")
-            /*for (var i = 0; i < this.fileAll.length; i++) {
-              //判断数组里是文件夹还是文件
-              formData.append('componentEntityFiles', this.fileAll[i].file);
-            }*/
-            // debugger
             createComp(this.projectId, formData).then((res) => {
               this.showConfirmBtn = false
               this.creComLoading = false
@@ -502,122 +530,8 @@
         this.showConfirmBtn1 = true
         this.dialogFormVisible = true
         this.$nextTick(() => {
-          /*if(this.$refs.createComFile.list) {
-            this.$refs.createComFile.list = []
-            this.$refs.createComFile.breadcrumbList = []
-          }*/
           this.$refs['dataForm'].clearValidate()
         })
-        /*this.$nextTick(() => {
-          this.$refs['dataForm'].clearValidate();
-
-          //树
-          compSingle(this.selectedId).then(response => {
-            this.singleComp = response.data.data;
-            this.listLoading = false
-
-            console.log("树信息-------------------");
-            console.log(this.singleComp);
-
-            //对比时，是路径节点与根节点下的孩子节点比较
-            let componentFile = this.singleComp.componentDetailEntities;//组件
-
-            let zNodes = [];
-            let item;
-            for (let m = 0; m < componentFile.length; m++) {
-
-              this.treeInfo.push(componentFile[m]);//放所有文件信息，用于树点击id的选择
-
-              item = this.singleComp;
-
-              let path = (componentFile[m].savePath).split('/');
-
-              for (let i = 1; i < path.length; i++) {
-                item = this.$options.methods.handleInfo(item, path[i]);
-              }
-            };
-
-            zNodes.push(this.singleComp);
-
-            console.log(zNodes);
-
-            let forderTemp = [];
-
-            for (let i = 0; i < this.singleComp.componentDetailEntities.length; i++) {
-              let info = this.singleComp.componentDetailEntities[i].savePath.split('/');
-              let clearId = this.singleComp.componentDetailEntities[i].id;
-
-              if (info.length > 2) {
-
-                if (forderTemp.length > 0) {
-                  let flag = true;
-
-                  for (let j = 0; j < forderTemp.length; j++) {
-                    if (forderTemp[j].name == info[1]) {
-                      flag = false;
-                    }
-                  }
-
-                  if (flag) {
-                    let info2 = {};
-                    info2.name = info[1];
-                    forderTemp.push(info2);
-                  }
-
-                } else {
-                  let info2 = {};
-                  info2.name = info[1];
-                  forderTemp.push(info2);
-                }
-
-
-                this.folderClearData.push(clearId);
-                console.log(this.folderClearData);
-              } else {
-                this.fileInfo.push(this.singleComp.componentDetailEntities[i]);
-                this.fileClearData.push(clearId);
-              }
-            }
-
-            console.log(forderTemp);
-
-            for (let i = 0; i < forderTemp.length; i++) {
-              this.folderInfo.push(forderTemp[i]);
-            }
-
-
-            let setting = {
-              view: {
-                dblClickExpand: false,
-                addHoverDom: this.addHoverDom,
-                removeHoverDom: this.removeHoverDom,
-                selectedMulti: this.true
-              },
-              edit: {
-                enable: true,
-                showRenameBtn: false,
-                showRemoveBtn: false
-              },
-              data: {
-                simpleData: {
-                  enable: true
-                }
-              },
-              callback: {
-                beforeDrag: this.beforeDrag,
-                beforeEditName: this.beforeEditName,
-                beforeRemove: this.beforeRemove,
-                beforeRename: this.beforeRename,
-                onRemove: this.onRemove,
-                onRename: this.onRename,
-                onClick: this.zTreeOnClick
-              }
-            };
-
-            $.fn.zTree.init($("#treeDemo"), setting, zNodes);
-          });
-
-        })*/
       },
       compCopy(row) {
         let qs = require('qs');
@@ -656,43 +570,26 @@
         })
       },
       updateData() {
+        this.unEdited = false
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            /*const updateloading = Loading.service({
-              lock: true,
-              text: 'Loading',
-              spinner: 'el-icon-loading',
-              fullscreen: true
-            })*/
             if(this.originalCompTemp.name === this.temp.name
               && this.originalCompTemp.version === this.temp.version
               && this.originalCompTemp.relativePath === this.temp.relativePath
               && this.originalCompTemp.description === this.temp.description)
             {
-              this.$message({
-                type: 'info',
-                message: '组件信息未修改'
-              })
+              this.dialogFormVisible = false
               return
             }
             this.upComLoading = true
             let id = this.selectedId;
 
-            let formData = new FormData();
-
             // this.fileAll = this.$refs.uploader.uploader.files;
-
-            formData.append('name', this.temp.name);
-            formData.append('version', this.temp.version);
-            formData.append('relativePath', this.temp.relativePath);
-            //formData.append('size', this.size);
-            formData.append('description', this.temp.description);
 
             //开始上传后去掉暂停和删除按钮
             //$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
             //$(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");
 
-            formData.append('enctype', "multipart/form-data");
 
             /*for (var i = 0; i < this.fileAll.length; i++) {
               //判断数组里是文件夹还是文件
@@ -704,7 +601,8 @@
               name: this.temp.name,
               version: this.temp.version,
               relativePath: this.temp.relativePath,
-              description: this.temp.description
+              description: this.temp.description,
+              modifyDescription: this.temp.modifyDescription
             }
             let qs = require('qs')
             let newdata = qs.stringify(data)
@@ -744,25 +642,6 @@
           }
         })
       },
-      /*setSort() {
-        const el = document.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
-        this.sortable = Sortable.create(el, {
-          ghostClass: 'sortable-ghost', // Class name for the drop placeholder,
-          setData: function (dataTransfer) {
-            dataTransfer.setData('Text', '')
-            // to avoid Firefox bug
-            // Detail see : https://github.com/RubaXa/Sortable/issues/1012
-          },
-          onEnd: evt => {
-            const targetRow = this.list.splice(evt.oldIndex, 1)[0]
-            this.list.splice(evt.newIndex, 0, targetRow)
-
-            // for show the changes, you can delete in you code
-            const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
-            this.newList.splice(evt.newIndex, 0, tempIndex)
-          }
-        })
-      },*/
       handleDelete(row) {
         let id = row.id;
         this.$confirm('确认删除吗？', '提示', {
@@ -790,17 +669,13 @@
       exportLink(row) {
 
         let id = row.id;
-        this.exportUrl = this.getIP() + 'components/' + id + '/export';
-
-        console.log(this.exportUrl);
+        // this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
+        this.exportUrl = service.defaults.baseURL + '/components/' + id + '/export';
         window.open(this.exportUrl);
       },
 
       uploadCom: function (file) {
         let formData = new FormData();
-
-        console.log("导入组件文件----------");
-        console.log(file);
 
         formData.append('importComponents', file.file);
         const uploading = Loading.service({
@@ -881,7 +756,7 @@
         compListHistory(this.projectId, this.listQuery).then(response => {
           this.isHistory = true
           this.list = response.data.data.content
-          this.total = response.data.total
+          this.total = response.data.data.totalElements
           this.listLoading = false
           this.hisBtnLoading = false
         }).catch(() => {
@@ -901,7 +776,7 @@
         this.hisBtnLoading = true
         compList(this.projectId,this.listQuery).then(response => {
           this.list = response.data.data.content
-          this.total = response.data.total
+          this.total = response.data.data.totalElements
           this.listLoading = false
           this.hisBtnLoading = false
           this.isHistory = false
@@ -988,6 +863,19 @@
             id: row.id
           }
         })
+      },
+      showPopover(row) {
+        if(row.popoverVisible == true) {
+          row.popoverVisible = false
+          return
+        }
+        this.list.forEach((item) => {
+          item.popoverVisible = false
+        })
+        row.popoverVisible = true
+      },
+      closePopover(row) {
+        row.popoverVisible = false
       }
      },
     computed: {
@@ -1022,5 +910,16 @@
     bottom: 0;
     right: 15px;
   }
-
+  .popover-close {
+    display: block;
+    text-align: right;
+    font-size: 20px;
+  }
+  .close-icon {
+    cursor: pointer;
+  }
+  .icon-show-popover {
+    cursor: pointer;
+    color: #337ab7;
+  }
 </style>

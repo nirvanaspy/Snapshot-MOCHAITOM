@@ -1,21 +1,148 @@
 <template>
-  <div class="app-container calendar-list-container deploy">
-    <div class="filter-container">
-      <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
-      </el-input>
-    </div>
-    <el-table :key="tableKey"
-              :data="listA"
-              v-loading="listLoading"
-              element-loading-text="给我一点时间"
-              border
-              fit
-              highlight-current-row
-              class="delpoyTable"
-              style="width: 100%"
-    >
+              <div class="app-container calendar-list-container deploy">
+                <div class="filter-container">
+                  <el-input style="width: 200px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
+                  </el-input>
+                  <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="deployAll" type="primary" icon="el-icon-news">一键部署</el-button>
+                </div>
+                <!--<el-table :key="tableKey"
+                          :data="listA"
+                          v-loading="listLoading"
+                          element-loading-text="给我一点时间"
+                          border
+                          fit
+                          highlight-current-row
+                          class="delpoyTable"
+                          style="width: 100%"
+                >
+                  <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="140" align="center" :label="$t('table.deviceIP')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.hostAddress}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="120" align="center" :label="$t('table.devicePath')">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.deployPath}}</span>
+                      <span v-else>暂未绑定设备</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="110" align="center" :label="$t('table.deviceState')">
+                    <template slot-scope="scope">
+                      <span class="el-tag el-tag&#45;&#45;danger" v-if="scope.row.online === false">离线</span>
+                      <span class="el-tag el-tag&#45;&#45;primary" v-else>在线</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
+                    <template slot-scope="scope">
+                      &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
+                      <el-progress :percentage="scope.row.progress"></el-progress>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="100" align="center" label="部署速度">
+                    <template slot-scope="scope">
+                      <span>{{computedDeploySpeed(scope.row.speed)}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="140" align="center" label="文件详情">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.fileState === 0" style="color: #FF0000;">{{scope.row.descript}}</span>
+                      <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
+                      <span v-else>{{scope.row.descript}}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column min-width="130" align="center" :label="$t('table.actions')">
+                    <template slot-scope="scope">
+                      <el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
+                                 @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>-->
+
+                <el-table :key="tableKey" :data="listA" v-loading="listLoading" element-loading-text="给我一点时间" fit highlight-current-row
+                          style="width: 100%"
+                          :row-key="getRowKeysComp"
+                          class="delpoyTable"
+                          :expand-row-keys="deviceExpands"
+                          @expand-change="expandRow"
+                >
+                  <el-table-column align="left" width="40" type="expand">
+                    <template slot-scope="props">
+                      <el-table
+                        stripe highlight-current-row
+                        :data="props.row.comps"
+                        style="padding: 0 0"
+                      >
+                        <el-table-column width="40">
+                          <template slot-scope="scope">
+                            <span><svg-icon icon-class="组件"></svg-icon></span>
+                          </template>
+            </el-table-column>
+            <el-table-column label="组件名" align="left" width="160">
+              <template slot-scope="scope">
+                  <span class="link-type">{{scope.row.componentHistoryEntity.name}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="版本" align="left" width="140">
+              <template slot-scope="scope">
+                  <span class="link-type">{{scope.row.componentHistoryEntity.version}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="路径" align="left" width="140">
+              <template slot-scope="scope">
+                <span>{{scope.row.componentHistoryEntity.relativePath}}</span>
+              </template>
+            </el-table-column>
+            <!--<el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
+              <template slot-scope="scope">
+                &lt;!&ndash;<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>&ndash;&gt;
+                <el-progress :percentage="scope.row.progress"></el-progress>
+              </template>
+            </el-table-column>
+            <el-table-column min-width="100" align="center" label="部署速度">
+              <template slot-scope="scope">
+                <span>&#45;&#45;</span>
+              </template>
+            </el-table-column>
+            <el-table-column min-width="140" align="center" label="文件详情">
+              <template slot-scope="scope">
+                <span v-if="scope.row.fileState === 0" style="color: #FF0000;">{{scope.row.descript}}</span>
+                <span v-else-if="scope.row.fileState === 1 || scope.row.fileState === 2" style="color: limegreen;">{{scope.row.descript}}</span>
+                <span v-else>{{scope.row.descript}}</span>
+              </template>
+            </el-table-column>-->
+            <el-table-column min-width="130" align="center" :label="$t('table.actions')">
+              <template slot-scope="scope">
+                <span v-if="scope.row.online === false" style="color: red;">
+                  设备离线
+                </span>
+                <span v-else-if="scope.row.online === true && (scope.row.ifWait === false || scope.row.ifComplete === true) &&  scope.row.ifRestart === false" @click="deployByComp(scope.row)" style="color: dodgerblue;font-size: 20px;cursor: pointer;">
+                  <svg-icon  icon-class="deploy"></svg-icon>
+                </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifComplete === false && scope.row.ifWait === true" style="color: limegreen;font-size: 20px;">
+                  <svg-icon  icon-class="wait2"></svg-icon>
+                </span>
+                <span v-else-if="scope.row.online === true && scope.row.ifComplete === true && scope.row.ifRestart === true" @click="deployByComp(scope.row)" style="font-size:20px;color: limegreen;cursor: pointer;">
+                  <svg-icon  icon-class="restart2"></svg-icon>
+                </span>
+
+
+                <!--<el-button size="mini" type="success" :id="scope.row.online" :state="scope.row.state" class="deployBtn" :disabled="!scope.row.online || scope.row.deviceEntity === null"
+                           @click="deployByNode(scope.row)" :loading="scope.row.deployLoading">部署</el-button>-->
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
+      </el-table-column>
       <el-table-column min-width="140" align="center" :label="$t('table.deviceName')">
         <template slot-scope="scope">
+          <!--@click="getDetailByNode(scope.row, scope.$index)"-->
           <span v-if="scope.row.deviceEntity">{{scope.row.deviceEntity.name}}</span>
           <span v-else>暂未绑定设备</span>
         </template>
@@ -40,7 +167,8 @@
       </el-table-column>
       <el-table-column min-width="180" align="center" :label="$t('table.deployProgress')">
         <template slot-scope="scope">
-          <el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>
+          <!--<el-progress :percentage="computedProgress(scope.row.progress)"></el-progress>-->
+          <el-progress :percentage="scope.row.progress"></el-progress>
         </template>
       </el-table-column>
       <el-table-column min-width="100" align="center" label="部署速度">
@@ -89,8 +217,9 @@
 </template>
 
 <script>
-  import { doDeploy, getDeployDevice, deployNode } from '@/api/deploy'
-  import { deployNodeList } from '@/api/deployDesignNode'
+  // import { doDeploy, getDeployDevice, deployNode } from '@/api/deploy'
+  import { deployNode, deployAll, deployByDeploymentDesignDetailId } from '@/api/deploy'
+  import { deployNodeList, getNodeDetail } from '@/api/deployDesignNode'
   import waves from '@/directive/waves' // 水波纹指令
   import service from '@/utils/request'
   import Stomp from 'stompjs'
@@ -130,7 +259,12 @@
         deployDetailInfo2: [],   //部署详情
         deviceDeployDetail: [],  //某设备的部署详情
         webResBody: [],
-        webProgressBody: []
+        webProgressBody: [],
+        deployIds: [],        // 一键部署的所有设备的id
+        getRowKeysComp(row) {
+          return row.id
+        },
+        deviceExpands: [],
       }
     },
     created() {
@@ -166,6 +300,7 @@
         let url = service.defaults.baseURL + '/OMS';
         let socket = new SockJS(url);
         let stompClient = Stomp.over(socket);
+        stompClient.debug=null
         let that = this;
         stompClient.connect({}, function (frame) {
           stompClient.subscribe('/onlineDevice', function (response) {
@@ -178,15 +313,18 @@
               for(let i=0;i<that.list.length;i++){
                 that.list[i].online = false;
 
+                if(that.list[i].comps !== undefined){
+                  for(let k=0;k<that.list[i].comps.length;k++){   // 组件的在线状态
+                    that.list[i].comps[k].online = false;
+                  }
+                }
+
                 if(that.list[i].online === false && that.list[i].virtual === true){
                   that.list.splice(i,1);
                   i--;
                 }
               }
             }
-
-            console.log("设备")
-            console.log(that.webResBody)
             /*if(that.webResBody.length > 0){
               for(let i=0;i<that.webResBody.length;i++){
                 let listIfExist = false;
@@ -214,15 +352,22 @@
                 if(that.list.length > 0){
                   for(let j=0;j<that.list.length;j++){
                     if(that.list[j].virtual !== true){       //虚拟设备不需要再赋值  或者在每次查之前把虚拟且离线的设备删除
-                      console.log(value.hostAddress)
-                      console.log(that.list[j])
                       if(that.list[j].deviceEntity !== null) {
                         if(value.hostAddress === that.list[j].deviceEntity.hostAddress){      //查找在线设备
                           that.list[j].online = true;
-                          that.list[j].cpuClock = value.cpuClock;
+
+                          if(that.list[j].online && that.list[j].comps!== undefined){
+                            for(let k=0;k<that.list[j].comps.length;k++){   //重置组件的在线状态
+                              if(that.list[j].comps[k].deploymentDesignNodeEntity.id === that.list[j].id){
+                                that.list[j].comps[k].online = true;
+                              }
+                            }
+                          }
+
+                          /*that.list[j].cpuClock = value.cpuClock;
                           that.list[j].cpuUtilization = value.cpuUtilization;
                           that.list[j].ramTotalSize = value.ramTotalSize;
-                          that.list[j].ramFreeSize = value.ramFreeSize;
+                          that.list[j].ramFreeSize = value.ramFreeSize;*/
                           that.list[j].virtual = false;
                           listIfExist = true;
                           break;
@@ -238,8 +383,6 @@
               for (let i = 0; i < that.list.length; i++) {
                 Vue.set(that.list, i, that.list[i]);
               }
-              /*console.log("设备----------");
-              console.log(that.list);*/
             }
           });
 
@@ -252,24 +395,78 @@
               for(let i=0;i<that.webProgressBody.length;i++){
                 if(that.list.length > 0){
                   for(let j=0;j<that.list.length;j++){
-                    if(that.webProgressBody[i].hostAddress == that.list[j].deviceEntity.hostAddress){      //查找此设备
-                      // that.list[j].progress = parseFloat(that.webProgressBody[i].progress.toFixed(2));
-                      that.list[j].progress = parseInt(that.webProgressBody[i].progress);
-                      that.list[j].speed = parseFloat(that.webProgressBody[i].speed.toFixed(2));
-                      that.list[j].state = that.webProgressBody[i].state;
-                      that.list[j].fileState = that.webProgressBody[i].state;
-                      that.list[j].descript = that.webProgressBody[i].description;
+                    if(that.list[j].deviceEntity) {
+                      if(that.webProgressBody[i].hostAddress == that.list[j].deviceEntity.hostAddress){      //查找此设备
+                        // that.list[j].progress = parseFloat(that.webProgressBody[i].progress.toFixed(2));
+                        that.list[j].progress = parseInt(that.webProgressBody[i].progress);
+                        that.list[j].speed = parseFloat(that.webProgressBody[i].speed.toFixed(2));
+                        that.list[j].state = that.webProgressBody[i].state;
+                        that.list[j].fileState = that.webProgressBody[i].state;
+                        that.list[j].descript = that.webProgressBody[i].description;
+                        if(that.list[j].comps) {
+                          for(let k=0;k<that.list[j].comps.length;k++){   //重置为可部署状态
+                            if(that.list[j].progress !== 100){
+                              that.list[j].comps[k].ifComplete = false;
+                              that.list[j].comps[k].ifWait = true;
+                              //that.list[j].comps[k].ifWait = true;
+                            }else{
+                              that.list[j].comps[k].ifComplete = true;
+                              that.list[j].comps[k].ifWait = false;
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
               }
             }
 
-            $("#onlineheartbeatmessages2").html(response.body);
+            // $("#onlineheartbeatmessages2").html(response.body);
           });
         });
 
       },
+
+      expandRow(row) {
+        if (!row.comps) {
+          row.loading = true
+          getNodeDetail(row.id).then((res) => {
+            for (let i = 0; i < this.list.length; i++) {
+              if (res.data.data.length > 0 && row.id === this.list[i].id) {
+                this.list[i].comps = res.data.data
+                for(let j=0;j<this.list[i].comps.length;j++){
+                  this.list[i].comps[j].online = false;
+                  this.list[i].comps[j].ifRestart = false;
+                  this.list[i].comps[j].ifWait = false;
+
+                }
+                console.log(this.list[i].comps)
+                break;
+              }
+            }
+            this.deviceExpands.push(row.id)
+          })
+
+        }
+      },
+
+      /*getDetailByNode(row, index) {
+        // this.isExpand = false
+        let uniqueId = this.deployPlanId + row.id
+        this.selectedDeviceId = row.id
+        this.selectedDeviceName = row.deviceEntity.name
+        this.selectedCompId = ''
+        this.selectedCompName = ''
+        // getDeployDetailByDevice(this.deployPlanId, row.id).then((res) => {
+        getNodeDetail(row.id).then((res) => {
+          this.deviceDetail = res.data.data
+          this.expands = []
+          this.list[index].comps = res.data.data
+          this.deviceExpands.push(row.id)
+          this.checkOrder(uniqueId)
+        })
+      },*/
 
       deployByNode: function (row) {
         let id = row.id;
@@ -281,7 +478,6 @@
             online = this.list[i].online;
             thisState = this.list[i].state;
             break;
-
           }
         }
 
@@ -305,7 +501,7 @@
                 this.dialogFormVisible = false
                 this.$notify({
                   title: '成功',
-                  message: '部署结束',
+                  message: '开始部署',
                   type: 'success',
                   duration: 2000
                 })
@@ -337,185 +533,127 @@
         }
       },
 
-      deployDetails: function (row) {
-
-        this.deviceDeployDetail.splice(0, this.deviceDeployDetail.length);    //清空某设备的部署详情数组
-        this.errorDetails.splice(0, this.errorDetails.length);    //清空某设备的失败文件数组
-        this.completedDeatils.splice(0, this.completedDeatils.length);    //清空某设备的成功文件数组
-
-        let ifexist = false;      //设备是否部署，false为未部署
-
-        let id = row.id;
-        let i = 0;
-
-        console.log("详情部署信息------------");
-        console.log(id);
-        console.log(this.list);
-        console.log(this.list.length);
-
-        if(this.list.length > 0){
-          for (i = 0; i < this.list.length; i++) {      //循环结果数组，找到点击的设备对应的数据
-            if (id === this.list[i].id) {
-              console.log(this.list[i].id);
-              console.log(this.list[i].progress);
-              if(this.list[i].progress !== 0){      //判断此设备是否已部署，进度不为0则已部署
-
-                if(this.list[i].errorFileList.length !== 0){                         //未成功文件存入失败详情数组
-                  for(let x=0;x<this.list[i].errorFileList.length;x++){
-                    this.errorDetails.push(this.list[i].errorFileList[x]);
-                  }
-
-                }
-
-                if(this.list[i].completedFileList !== 0){                           //成功文件存入完成详情数组
-                  for(let y=0;y<this.list[i].completedFileList.length;y++){
-                    this.completedDeatils.push(this.list[i].completedFileList[y]);
-                  }
-                }
-
-                ifexist = true;           //设备已部署
-                break;
-              }
-            }
+      // 一键部署
+      deployAll: function () {
+        this.deployIds.splice(0, this.deployIds.length);
+        for(let i=0;i<this.list.length;i++){          // 所有在线设备
+          if(this.list[i].online === true){
+            this.deployIds.push(this.list[i].id);
           }
         }
 
-        console.log("失败成功文件------");
-        console.log(this.errorDetails);
-        console.log(this.completedDeatils);
+        // 一键部署的id
+        /*console.log('一键部署的id');
+        console.log(this.deployPlanId);
+        console.log(this.deployIds);*/
 
-        if(this.errorDetails.length !== 0){
-          for (let i = 0; i < this.errorDetails.length; i++) {
-            this.errorDetails[i].state = false;
-          }
-        }
-
-        if(this.completedDeatils.length !== 0){
-          for (let i = 0; i < this.completedDeatils.length; i++) {
-            this.completedDeatils[i].state = true;
-          }
-        }
-
-        console.log(this.completedDeatils);
-
-        this.deployDetailInfo.info = [];
-
-        console.log("失败文件------------");
-        console.log(this.errorDetails.length);
-        if(this.errorDetails.length !== 0){
-          for(let j=0;j<this.errorDetails.length;j++){
-            this.deployDetailInfo.info.push(this.errorDetails[j]);
-          }
-        }
-
-        if(this.completedDeatils.length !== 0){
-          for(let k=0;k<this.completedDeatils.length;k++){
-            this.deployDetailInfo.info.push(this.completedDeatils[k]);
-          }
-
-        }
-
-        this.deployDetailInfo2.push(this.deployDetailInfo);
-
-        console.log("部署详情-------------");
-        console.log(this.deployDetailInfo);
-        console.log(this.deployDetailInfo2);
-
-
-
-        /*for (i = 0; i < this.deployDetailInfo2.length; i++) {
-          console.log(this.deployDetailInfo2[i]);
-          console.log(this.deployDetailInfo2[i].deviceId);
-          if (id == this.deployDetailInfo2[i].deviceId) {
-
-            ifexist = true;           //设备已部署
-            break;
-          }
-        }*/
-        console.log(ifexist);
-
-        if (ifexist === true) {
-
-          console.log(this.deployDetailInfo2);
-          this.deviceDeployDetail = this.deployDetailInfo2[0].info;
-
-          console.log("已部署的设备的信息-----------------");
-          console.log(this.deviceDeployDetail);
-
-          this.dialogTableVisible = true;
-          //$("#modal-select").modal('show');
-
-        } else {
-          this.$message({
-            message: '请先部署!',
+        if(this.deployIds.length > 0){    //有设备在线
+          this.$confirm('确认部署所有在线设备吗吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
             type: 'warning'
+          }).then(() => {
+            deployAll(this.deployPlanId).then(() => {
+              // this.deployLoading = false
+              this.$notify({
+                title: '成功',
+                message: '开始部署',
+                type: 'success',
+                duration: 2000
+              })
+            }).catch(err => {
+              if(err.response.data.data.length != 0){
+                this.$notify({
+                  title: '失败',
+                  message: err.response.data.data,
+                  type: 'error',
+                  duration: 2000
+                })
+              }
+            })
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消部署'
+            })
           })
         }
 
-        console.log(this.deviceDeployDetail);
-
       },
-      /*getDeployProgress: function () {
-        // "/topic/deployprogress/" + this.deployPlanId
-        let url = service.defaults.baseURL + '/OMS';
-        let socket = new SockJS(url);
-        let stompClient = Stomp.over(socket);
-        let that = this;
-        stompClient.connect({}, function (frame) {
-          stompClient.subscribe("/topic/deployprogress/" + this.deployPlanId, function (response) {
-            let resBody = response.body;
-            let resBody2 = resBody.replace(/[\\]/g, '');
-            that.webResBody = JSON.parse(resBody2);
-            $("#onlineheartbeatmessages2").html(resBody);
 
-            /!*if(that.list.length > 0){
-              for(let i=0;i<that.list.length;i++){
-                that.list[i].online = false;
+      // 部署单个组件
+      deployByComp: function (row) {
+        let id = row.id;
+        let deviceId = row.deploymentDesignNodeEntity.deviceEntity.id;
 
-                if(that.list[i].online === false && that.list[i].virtual === true){
-                  that.list.splice(i,1);
-                  i--;
-                }
-              }
-            }
+        console.log(row)
 
-            if(that.webResBody.length > 0){
-              for(let i=0;i<that.webResBody.length;i++){
-                let listIfExist = false;
-                let tempList = [];
-                if(that.list.length > 0){
-                  for(let j=0;j<that.list.length;j++){
-                    if(that.list[j].virtual !== true){       //虚拟设备不需要再赋值  或者在每次查之前把虚拟且离线的设备删除
-                      if(that.webResBody[i].inetAddress === that.list[j].ip){      //查找在线设备
-                        that.list[j].online = true;
-                        that.list[j].cpuclock = that.webResBody[i].cpuclock;
-                        that.list[j].ramsize = that.webResBody[i].ramsize;
-                        that.list[j].virtual = false;
-                        listIfExist = true;
-                        break;
-                      }
-                    }
+        let ifOnline = false;
+
+        console.log("list----------")
+        console.log(this.list)
+        for(let i=0;i<this.list.length;i++){
+          if(this.list[i].deviceEntity !== null && deviceId === this.list[i].deviceEntity.id && this.list[i].online){
+            ifOnline = true;
+            break;
+          }
+        }
+        console.log(row);
+
+        if(ifOnline){   // 判断该组件所绑定的设备是否在线
+            this.$confirm('确认部署吗？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              row.ifRestart = true;
+              console.log("测试----")
+              console.log(row.deploymentDesignNodeEntity.id);
+              for(let i = 0; i < this.list.length; i++){
+                console.log(this.list[i].id)
+                if(row.deploymentDesignNodeEntity.id === this.list[i].id){
+                  for(let j=0;j<this.list[i].comps.length;j++){
+                    this.list[i].comps[j].ifWait = true;
                   }
-                }
-              }
-            }
 
-            if(that.list.length > 0) {
-              for (let i = 0; i < that.list.length; i++) {
-                Vue.set(that.list, i, that.list[i]);
+                  console.log(this.list[i].comps)
+                }
+
               }
-              /!*console.log("设备----------");
-              console.log(that.list);*!/
-            }*!/
-          });
-        });
-      }*/
+
+
+              //document.getElementById("compSvg").icon-class = "restart.svg";
+              deployByDeploymentDesignDetailId(id).then(() => {
+                this.$notify({
+                  title: '成功',
+                  message: '开始部署',
+                  type: 'success',
+                  duration: 2000
+                })
+              }).catch(err => {
+                if(err.response.data.data.length != 0){
+                  this.$notify({
+                    title: '失败',
+                    message: err.response.data.data,
+                    type: 'error',
+                    duration: 2000
+                  })
+                }
+              })
+            }).catch(() => {
+              this.$message({
+                type: 'info',
+                message: '已取消部署'
+              })
+            })
+
+        }
+
+      }
     },
     computed: {
       listA: function () {
         let self = this;
-        console.log("list---------------");
-        console.log(self.list);
         if(self.list !== null){
           return self.list.filter(function (item) {
             if(item.deviceEntity !== null) {
@@ -544,8 +682,11 @@
           if(speed >= 0 && speed <= 1000) {
             return Math.round(speed*10)/10 + 'KB/S'
           }
-          if(speed > 1000) {
+          if(speed > 1000 && speed <= 50000) {
             return Math.round(speed/10)/100 + 'MB/S'
+          }
+          if(speed > 50000) {
+            return '50MB/S'
           }
           if(!speed) {
             return 0 + 'KB/S'

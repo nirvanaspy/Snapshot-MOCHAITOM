@@ -49,7 +49,8 @@
 
       <el-dropdown class="avatar-container right-menu-item" trigger="click">
         <div class="avatar-wrapper">
-          <img class="user-avatar" src="./2.jpg">
+          <span class="user-avatar"><svg-icon icon-class="useravata"></svg-icon></span>
+          <!--<img class="user-avatar" src="./2.jpg">-->
           <i class="el-icon-caret-bottom"></i>
         </div>
         <el-dropdown-menu slot="dropdown">
@@ -58,11 +59,14 @@
               <span>首页</span>
             </el-dropdown-item>
           </router-link>
-          <router-link to="/projectManage">
+          <!--<router-link to="/projectManage" @click="jumpToProManage">
             <el-dropdown-item divided>
               <span>项目管理</span>
             </el-dropdown-item>
-          </router-link>
+          </router-link>-->
+          <el-dropdown-item divided>
+            <span @click="jumpToProManage">项目管理</span>
+          </el-dropdown-item>
           <el-dropdown-item divided>
             <span v-if="role === 'admin'" style="display:block;">
               <router-link to="/user_manage">用户管理</router-link>
@@ -277,9 +281,7 @@
           this.projectLength = this.list.length
 
           let isExist = false;
-          console.log(this.selected);
           if(this.selected != ''){
-            console.log("有选择项目");
             for(let i=0;i<this.list.length;i++){
               if(this.selected == this.list[i].name){   //判断显示的在现在的列表中是否存在
                 isExist = true;
@@ -311,7 +313,6 @@
             isReal = true;
             projectId = this.list[i].id;
             projectName = this.list[i].name
-            console.log(projectId);
             let expireDays = 30;
             this.selectedProName = this.list[i].name
             this.setCookie('projectId', projectId, expireDays);
@@ -320,10 +321,7 @@
             break;
           }
         }
-        console.log("是否存在");
-        console.log(isReal);
         if(!isReal){
-          alert("hhhhh");
           let qs = require('qs');
           let data = {
             'name': this.proName,
@@ -346,8 +344,6 @@
           })
 
         }else {
-          console.log("下拉改变--------");
-          console.log(this.projectExist);
           this.getList();
           this.setProjectExist(this.projectExist);
 
@@ -361,6 +357,10 @@
         this.$store.dispatch('FedLogOut').then(() => {
           location.reload()// In order to re-instantiate the vue-router object to avoid bugs
         })
+      },
+      jumpToProManage() {
+        this.$router.replace('/projectManage')
+        this.$store.dispatch('delAllViews')
       },
       handleModifyPassword() {
         this.resetModify()
@@ -383,7 +383,6 @@
             }
             var qs = require('qs');
             let datapost = qs.stringify(data)
-            console.log(this.userId)
             updateUser(datapost,this.userId).then(() => {
               this.modifyPasswordVisible = false
               this.$notify({
@@ -481,6 +480,9 @@
             width: 40px;
             height: 40px;
             border-radius: 10px;
+            font-size: 40px;
+            position: relative;
+            top: -4px;
           }
           .el-icon-caret-bottom {
             position: absolute;
