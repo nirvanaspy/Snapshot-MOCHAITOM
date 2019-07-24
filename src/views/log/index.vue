@@ -84,6 +84,7 @@
 </template>
 
 <script>
+  /*eslint-disable*/
   import { logList, logDetail, logSearchList } from '@/api/log'
   import waves from '@/directive/waves' // 水波纹指令
   import { parseTime } from '@/utils'
@@ -204,7 +205,6 @@
         this.listLoading = true
         logList(this.proId, this.listQuery).then(response => {
           this.list = response.data.data.content
-          console.log(this.list)
           this.listLoading = false
           this.listLength = response.data.data.length
           this.total = response.data.data.totalElements

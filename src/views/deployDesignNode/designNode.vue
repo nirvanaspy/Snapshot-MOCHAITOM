@@ -428,7 +428,7 @@
             <el-table-column align="center" label="可选组件" min-width="120" class-name="small-padding fixed-width">
               <template slot-scope="scope">
                 <el-tooltip placement="top">
-                  <div slot="content">版本：{{scope.version}}<br/>相对路径：{{scope.row.relativePath}}</div>
+                  <div slot="content">版本：{{scope.row.version}}<br/>相对路径：{{scope.row.relativePath}}</div>
                   <span>{{scope.row.name}}</span>
                 </el-tooltip>
               </template>
