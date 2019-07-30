@@ -6,17 +6,29 @@
         <span class="operation-name">操作</span>
       </div>
       <div class="main-mani">
-        <span class="operation-item">
+        <span class="operation-item" @click="simOperation('start')">
           <svg-icon icon-class="开始"></svg-icon>
           <span class="operation-name">开始</span>
         </span>
-        <span class="operation-item">
+        <span class="operation-item" @click="simOperation('suspend')">
           <svg-icon icon-class="暂停"></svg-icon>
           <span class="operation-name">暂停</span>
         </span>
-        <span class="operation-item">
+        <span class="operation-item" @click="simOperation('stepThrough')">
+          <svg-icon icon-class="step"></svg-icon>
+          <span class="operation-name">步长</span>
+        </span>
+        <span class="operation-item" @click="simOperation('stepSize')">
+          <svg-icon icon-class="singleStep"></svg-icon>
+          <span class="operation-name">单步</span>
+        </span>
+        <span class="operation-item" @click="simOperation('recover')">
           <svg-icon icon-class="刷新"></svg-icon>
-          <span class="operation-name">刷新</span>
+          <span class="operation-name">恢复</span>
+        </span>
+        <span class="operation-item" @click="simOperation('stop')">
+          <svg-icon icon-class="停止"></svg-icon>
+          <span class="operation-name">停止</span>
         </span>
         <span class="operation-item">
           <svg-icon icon-class=""></svg-icon>
@@ -36,8 +48,15 @@
             <el-col :span="8">
               <div class="var-container">
                 <div class="container-name">
-                  <span>变量配置</span>
-                  <span class="component-name">（组件1）</span>
+                  <span>运行状态</span>
+                  <!--<span class="component-name">（组件1）</span>-->
+                </div>
+                <!--<div class="socketResBox">{{socketRes}}</div>-->
+                <div class="socketResBox" v-if="socketRes">
+                  <div class="socketValue" v-for="(value, key) in socketRes[0]">
+                    <span class="socket-key">{{key}}:</span>
+                    <span class="socket-value">{{value}}</span>
+                  </div>
                 </div>
               </div>
             </el-col>
@@ -65,6 +84,11 @@
 <script>
   import vueTerminal from './VueTerminal'
   import { Multipane, MultipaneResizer } from 'vue-multipane'
+  import { simOperate } from '../../api/simulate'
+  import qs from 'qs'
+  import service from '@/utils/request'
+  import Stomp from 'stompjs'
+  import SockJS from 'sockjs-client'
 
   function generateTime() {
     const timeNow = new Date()
@@ -99,6 +123,16 @@
     },
     data() {
       return {
+        socketRes: null,
+        deviceId: '',
+        operationMap: {
+          'start': '开始',
+          'suspend': '暂停',
+          'stop': '结束',
+          'recover': '恢复',
+          'stepThrough': '步长调试',
+          'stepSize': '单步调试'
+        },
         taskList: {
           echo: {
             description: 'Echoes input',
@@ -149,7 +183,7 @@
               })
               return p
             }
-          }
+          },
         },
         commandList: {
           version: {
@@ -242,7 +276,48 @@
         }
       }
     },
+    methods: {
+      subscribe() {
+        const url = service.defaults.baseURL + '/OMS'
+        const socket = new SockJS(url)
+        const stompClient = Stomp.over(socket)
+        stompClient.debug = null
+        const self = this
+        stompClient.connect({}, function(frame) {
+          stompClient.subscribe('/simEngine/' + self.deviceId, function(response) {
+            // console.log(response.body)
+            // self.socketRes = response.body
+            const resBody = response.body
+            const resBody2 = resBody.replace(/[\\]/g, '')
+            self.socketRes = JSON.parse(resBody2)
+          })
+        })
+      },
+      simOperation(cmd) {
+        const data = {
+          simEngineCmd: cmd
+        }
+        const dataPost = qs.stringify(data)
+        simOperate(this.deviceId, dataPost).then((res) => {
+          this.$notify({
+            title: '成功',
+            message: this.operationMap[cmd] + '操作成功',
+            type: 'success',
+            duration: 2000
+          })
+        }).catch(() => {
+          this.$notify({
+            title: '失败',
+            message: this.operationMap[cmd] + '操作失败',
+            type: 'error',
+            duration: 2000
+          })
+        })
+      }
+    },
     created() {
+      this.deviceId = this.$route.params.id
+      this.subscribe()
     }
   }
 </script>
@@ -326,5 +401,21 @@
     margin-bottom: 2px;
   }
   .pane {
+  }
+  .socketResBox {
+    word-wrap:break-word;
+    padding: 10px;
+    line-height: 30px;
+    overflow-y: scroll;
+  }
+  /*.socketValue {*/
+    /*padding: 0;*/
+  /*}*/
+  .socket-key {
+    color: #333;
+    font-weight: 700;
+  }
+  .socket-value {
+    color: #555;
   }
 </style>
