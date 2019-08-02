@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import uploader from 'vue-simple-uploader'
 import axios from 'axios'
-import SparkMD5 from 'spark-md5'
+import service from '@/utils/request'
 Vue.prototype.$axios = axios
 /* eslint-disable */
 Vue.use(uploader)
@@ -121,11 +121,29 @@ Object.keys(filters).forEach(key => {
 
 Vue.config.productionTip = false
 
-new Vue({
-  el: '#app',
-  router,
-  store,
-  i18n,
-  template: '<App/>',
-  components: { App }
-})
+function getServerConfig () {
+  return new Promise((resolve, reject) => {
+    axios.get('./static/serverConfig.json').then(result => {
+      let config = result.data;
+      for (let key in config) {
+        Vue.prototype[key] = config[key];
+      }
+      resolve();
+    })
+  })
+}
+
+async function main () {
+  await getServerConfig();
+  service.defaults.baseURL = Vue.prototype.baseUrl
+  new Vue({
+    el: '#app',
+    router,
+    store,
+    i18n,
+    template: '<App/>',
+    components: { App }
+  })
+}
+
+main()
