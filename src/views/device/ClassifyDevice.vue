@@ -4,6 +4,7 @@
       <el-button type="primary" size="mini" style="float: right;" @click="addDevice">添加设备</el-button>
     </div>
     <div class="page-diagram" id="myDiagramDiv"></div>
+    <div class="page-palette" id="myPaletteDiv"></div>
     <el-dialog title="添加设备" :visible.sync="dialogFormVisible" width="40%" class="addDeviceDialog">
       <el-form :rules="deviceRules"
                ref="dataForm"
@@ -75,7 +76,9 @@
       return {
         proId: '',
         diagram: null,
+        palette: null,
         deviceList: [],
+        nodeList: [],
         dialogFormVisible: false,
         creDevLoading: false,
         temp: {
@@ -92,55 +95,192 @@
       }
     },
     methods: {
+      finishDrop(e, grp) {
+        // if (!(grp instanceof go.Group) || grp.diagram === null) return
+        const ok = grp.addMembers(grp.diagram.selection, true)
+        if (!ok) grp.diagram.currentTool.doCancel()
+      },
+      highlightGroup(e, grp, show) {
+        if (!grp) return
+        e.handled = true
+        const bottomObject = grp.findObject('bottom')
+
+        if (show) {
+          bottomObject.fill = 'rgba(128,255,255,0.2)'
+        } else {
+          bottomObject.fill = 'white'
+        }
+      },
+      getNodeSideTemplate(curserType, alignType) {
+        return $(go.Shape, {
+          alignment: alignType,
+          cursor: curserType,
+          desiredSize: new go.Size(6, 6),
+          fill: 'lightblue',
+          stroke: 'deepskyblue'
+        })
+      },
+      getNodeResizeAdornmentTemplate() {
+        return $(
+          go.Adornment,
+          'Spot',
+          { locationSpot: go.Spot.Right },
+          $(go.Placeholder),
+          this.getNodeSideTemplate('nw-resize', go.Spot.TopLeft),
+          this.getNodeSideTemplate('n-resize', go.Spot.Top),
+          this.getNodeSideTemplate('ne-resize', go.Spot.TopRight),
+          this.getNodeSideTemplate('w-resize', go.Spot.Left),
+          this.getNodeSideTemplate('e-resize', go.Spot.Right),
+          this.getNodeSideTemplate('se-resize', go.Spot.BottomLeft),
+          this.getNodeSideTemplate('s-resize', go.Spot.Bottom),
+          this.getNodeSideTemplate('sw-resize', go.Spot.BottomRight)
+        )
+      },
+      buildDomainNodeTemplate() {
+        return $(
+          go.Group,
+          'Vertical',
+          {
+            // fromLinkable: true,
+            // toLinkable: true,
+            minSize: new go.Size(100, 200)
+          },
+          {
+            resizable: true,
+            resizeObjectName: 'bottom',
+            resizeAdornmentTemplate: this.getNodeResizeAdornmentTemplate(),
+            locationObjectName: 'SHAPE'
+          },
+          {
+            background: 'transparent',
+            ungroupable: true,
+            computesBoundsAfterDrag: true,
+            computesBoundsIncludingLocation: true,
+            // highlight when dragging into the Group
+            mouseDragEnter: (e, grp, prev) => {
+              this.highlightGroup(e, grp, true)
+            },
+            mouseDragLeave: (e, grp, next) => {
+              this.highlightGroup(e, grp, false)
+            },
+            // if it fails, cancel the tool, rolling back any changes
+            mouseDrop: this.finishDrop,
+            handlesDragDropForMembers: true, // don't need to define handlers on member Nodes and Links
+            doubleClick: function(e, obj) {
+              e.diagram.commandHandler.editTextBlock()
+            }
+          },
+          { defaultStretch: go.GraphObject.Horizontal },
+          new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
+            go.Point.stringify
+          ),
+          $(
+            go.Panel,
+            'Table',
+            $(
+              go.Shape, 'RoundedRectangle',
+              {
+                // fromLinkable: true,
+                // toLinkable: true,
+                row: 0,
+                minSize: new go.Size(100, 200)
+              },
+              {
+                name: 'bottom',
+                fill: 'white',
+                stroke: '#999',
+                strokeWidth: 2
+              },
+              /* new go.Binding("desiredSize").makeTwoWay(go.Size.stringify) */
+              new go.Binding('desiredSize', 'size', go.Size.parse).makeTwoWay(
+                go.Size.stringify
+              )
+            ),
+            $(
+              go.TextBlock,
+              {
+                row: 1
+              },
+              {
+                font: 'normal normal normal 10pt 宋体',
+                editable: true,
+                isUnderline: false,
+                isStrikethrough: false,
+                minSize: new go.Size(10, NaN),
+                margin: 5,
+                stroke: '#333',
+                text: '区域'
+              },
+              new go.Binding('text', 'text')
+            )
+          )
+        )
+      },
+      buildDeviceNodeTemplate(device) {
+        return $(
+          go.Node,
+          'Spot', // the Shape automatically fits around the TextBlock
+          {
+            locationSpot: go.Spot.Center,
+            resizeObjectName: 'PICTURE'
+            // deletable: false
+          },
+          new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
+            go.Point.stringify
+          ),
+          $(
+            go.Panel,
+            'Vertical',
+            $(
+              go.Picture,
+              {
+                name: 'PICTURE',
+                desiredSize: new go.Size(40, 40),
+                cursor: 'pointer',
+                source: 'static/svg/device.svg'
+              },
+              new go.Binding('desiredSize', 'size', go.Size.parse).makeTwoWay(
+                go.Size.stringify
+              )
+            ),
+            $(
+              go.TextBlock,
+              {
+                font: 'normal normal normal 10pt 宋体',
+                editable: false,
+                isUnderline: false,
+                isStrikethrough: false,
+                minSize: new go.Size(10, NaN),
+                margin: 5,
+                stroke: '#333',
+                text: device.name
+              },
+              new go.Binding('text', 'text')
+            )
+          )
+        )
+      },
+      getGroupTemplateMap() {
+        const nodeMap = new go.Map()
+        nodeMap.add('Domain', this.buildDomainNodeTemplate())
+        return nodeMap
+      },
+      getNodeTemplateMap() {
+        const nodeMap = new go.Map()
+        nodeMap.add('Device', this.buildDeviceNodeTemplate('device'))
+        return nodeMap
+      },
       addNode(device) {
         if (!this.diagram) {
           return
         } else {
           this.diagram.add( // add an unbound Node to the diagram at a random position
-            $(
-              go.Node,
-              'Spot', // the Shape automatically fits around the TextBlock
-              {
-                locationSpot: go.Spot.Center,
-                resizeObjectName: 'PICTURE',
-                deletable: false
-              },
-              new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
-                go.Point.stringify
-              ),
-              $(
-                go.Panel,
-                'Vertical',
-                $(
-                  go.Picture,
-                  {
-                    name: 'PICTURE',
-                    desiredSize: new go.Size(40, 40),
-                    cursor: 'pointer',
-                    source: 'static/svg/device.svg'
-                  },
-                  new go.Binding('desiredSize', 'size', go.Size.parse).makeTwoWay(
-                    go.Size.stringify
-                  )
-                ),
-                $(
-                  go.TextBlock,
-                  {
-                    font: 'normal normal normal 10pt 宋体',
-                    editable: false,
-                    isUnderline: false,
-                    isStrikethrough: false,
-                    minSize: new go.Size(10, NaN),
-                    stroke: '#333',
-                    text: device.name + '-' + device.hostAddress
-                  }
-                )
-              )
-            )
+            this.buildDeviceNodeTemplate(device)
           )
         }
       },
       init() {
+        this.nodeList = []
         getAllDevices(this.proId).then(res => {
           this.deviceList = res.data.data
           this.diagram = $(go.Diagram, 'myDiagramDiv',
@@ -149,9 +289,28 @@
             })
           for (let i = 0; i < this.deviceList.length; i++) {
             const device = this.deviceList[i]
-            this.addNode(device)
+            this.nodeList.push({
+              category: 'Device',
+              key: device.id,
+              text: device.name
+            })
+            // this.addNode(device)
           }
+          this.diagram.groupTemplateMap.add('Domain', this.buildDomainNodeTemplate())
+          this.diagram.nodeTemplateMap.add('Device', this.buildDeviceNodeTemplate('device'))
+          this.diagram.model = new go.GraphLinksModel(this.nodeList)
         })
+      },
+      initPaltte() {
+        this.palette =
+          $(go.Palette, 'myPaletteDiv',
+            {
+              groupTemplateMap: this.getGroupTemplateMap(),
+              nodeTemplateMap: this.getNodeTemplateMap(),
+              model: new go.GraphLinksModel([
+                { category: 'Domain', text: '区域', isGroup: true }
+              ])
+            })
       },
       addDevice() {
         this.dialogFormVisible = true
@@ -184,7 +343,13 @@
                 duration: 2000
               })
               const device = res.data.data
-              this.addNode(device)
+              const addData = {
+                category: 'Device',
+                key: device.id,
+                text: device.name
+              }
+              this.diagram.model.nodeDataArray.push(addData)
+              this.diagram.model.addNodeData(addData)
             }).catch((error) => {
               this.creDevLoading = false
               this.errorMessage = '操作失败！'
@@ -206,6 +371,7 @@
       this.proId = this.getCookie('projectId')
     },
     mounted() {
+      this.initPaltte()
       this.init()
     }
   }
@@ -224,11 +390,21 @@
     }
 
     .page-diagram {
-      width: 100%;
+      display: inline-block;
+      width: calc(100% - 160px);
       height: calc(100% - 40px);
       background: #fff;
       border: solid 1px black;
       margin-top: 10px;
+    }
+
+    .page-palette {
+      display: inline-block;
+      width: 150px;
+      height: calc(100% - 40px);
+      margin-right: 2px;
+      background-color: #fff;
+      border: solid 1px black
     }
   }
 

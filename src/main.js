@@ -136,6 +136,7 @@ function getServerConfig () {
 async function main () {
   await getServerConfig();
   service.defaults.baseURL = Vue.prototype.baseUrl
+  console.log(service.defaults.baseURL)
   new Vue({
     el: '#app',
     router,

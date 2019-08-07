@@ -6,7 +6,7 @@
       </div>
       <el-input style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
-      <el-button @click="classifyDevice" type="warning" style="float: right;margin-left: 10px;">设备拓扑结构</el-button>
+      <el-button @click="classifyDevice" type="warning" style="float: right;margin-left: 10px;">设备拓扑图</el-button>
       <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
       <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
         回收站
