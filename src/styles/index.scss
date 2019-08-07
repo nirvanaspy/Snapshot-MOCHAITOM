@@ -300,3 +300,10 @@ code {
     min-width: 700px;
   }
 }
+
+.addDeviceDialog .el-dialog {
+  .el-dialog__footer {
+    height: 60px;
+  }
+}
+

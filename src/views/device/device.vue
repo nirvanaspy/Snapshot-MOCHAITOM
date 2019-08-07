@@ -6,6 +6,7 @@
       </div>
       <el-input style="width: 240px;" class="filter-item" :placeholder="$t('table.deviceName')" v-model="searchQuery">
       </el-input>
+      <el-button @click="classifyDevice" type="warning" style="float: right;margin-left: 10px;">设备拓扑结构</el-button>
       <el-button class="filter-item pull-right" style="margin-left: 10px;float: right;" @click="handleCreate" type="success" icon="el-icon-edit" v-show="!isHistory">{{$t('table.add')}}</el-button>
       <el-button type="primary" @click="showHistory" style="float: right;" icon="el-icon-delete" v-show="!isHistory">
         回收站
@@ -325,6 +326,9 @@
         <el-button type="primary" @click="reportDevice">{{$t('table.confirm')}}</el-button>
       </div>
     </el-dialog>
+    <el-dialog :visible.sync="classifyDeviceDialog.visible" class="classifyDialog">
+      <classify-device ref="classifyDevice" v-if="classifyDeviceDialog.visible"></classify-device>
+    </el-dialog>
   </div>
 </template>
 
@@ -337,6 +341,7 @@
   import SockJS from 'sockjs-client'
   import lineMarker from './lineMarker'
   import Vue from 'vue'
+  import ClassifyDevice from './ClassifyDevice'
 
   /* eslint-disable */
   export default {
@@ -345,7 +350,8 @@
       waves
     },
     components: {
-      lineMarker
+      lineMarker,
+      ClassifyDevice
     },
     data() {
       const validateIP = (rule, value, callback) => {
@@ -374,6 +380,9 @@
       }
 
       return {
+        classifyDeviceDialog: {
+          visible: false
+        },
         isHistory: false,
         tableKey: 0,
         list: [],
@@ -1036,6 +1045,12 @@
             type: 'info',
             message: '已取消恢复'
           })
+        })
+      },
+      classifyDevice() {
+        // this.classifyDeviceDialog.visible = true
+        this.$router.push({
+          path: '/classifyDevice'
         })
       }
     },

@@ -387,5 +387,11 @@ export const asyncRouterMap = [
     component: Layout,
     hidden: true,
     children: [{ path: 'componentHistory/:id', component: _import('componentHistory/index'), name: 'componentHistory', meta: { title: 'componentHistory', icon: 'table', noCache: true }}]
+  },
+  {
+    path: '/classifyDevice',
+    component: Layout,
+    hidden: true,
+    children: [{ path: '', component: _import('device/ClassifyDevice'), name: 'classifyDevice', meta: { title: '设备拓扑结构', icon: 'computer', noCache: true }}]
   }
 ]
