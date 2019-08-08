@@ -215,7 +215,7 @@
                 stroke: '#333',
                 text: '区域'
               },
-              new go.Binding('text', 'text')
+              new go.Binding('text', 'text').makeTwoWay()
             )
           )
         )
@@ -261,7 +261,7 @@
                 stroke: '#333',
                 text: device.name
               },
-              new go.Binding('text', 'text')
+              new go.Binding('text', 'text').makeTwoWay()
             )
           )
         )
