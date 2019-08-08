@@ -1,34 +1,36 @@
 <template>
-  <div class="classify-container">
-    <div class="operate-btn">
-      <el-button type="primary" size="mini" style="float: right;" @click="addDevice">添加设备</el-button>
-    </div>
-    <div class="page-diagram" id="myDiagramDiv"></div>
-    <div class="page-palette" id="myPaletteDiv"></div>
-    <el-dialog title="添加设备" :visible.sync="dialogFormVisible" width="40%" class="addDeviceDialog">
-      <el-form :rules="deviceRules"
-               ref="dataForm"
-               :model="temp"
-               label-width="100px"
-               :disabled="temp.virtual"
-               style='width: 80%; margin:0 auto;'>
-        <el-form-item :label="$t('table.deviceName')" prop="name">
-          <el-input v-model="temp.name"></el-input>
-        </el-form-item>
-        <el-form-item :label="$t('table.deviceIP')" prop="hostAddress">
-          <el-input v-model="temp.hostAddress"></el-input>
-        </el-form-item>
-        <el-form-item :label="$t('table.devicePath')" prop="deployPath">
-          <el-tooltip placement="top">
-            <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows: C:/test<br/>Linux: /test<br/>Vxworks: /test</div>
-            <el-input v-model="temp.deployPath" placeholder="例如：D:/test"></el-input>
-          </el-tooltip>
-        </el-form-item>
-        <el-form-item :label="$t('table.deviceDesc')" prop="description">
-          <el-input v-model="temp.description"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
+  <keep-alive>
+    <div class="classify-container">
+      <div class="operate-btn">
+        <el-button type="primary" size="mini" style="float: right;" @click="addDevice">添加设备</el-button>
+        <el-button type="success" size="mini" style="float: right;margin-right: 4px;" @click="saveModel">保存布局</el-button>
+      </div>
+      <div class="page-diagram" id="myDiagramDiv"></div>
+      <div class="page-palette" id="myPaletteDiv"></div>
+      <el-dialog title="添加设备" :visible.sync="dialogFormVisible" width="40%" class="addDeviceDialog">
+        <el-form :rules="deviceRules"
+                 ref="dataForm"
+                 :model="temp"
+                 label-width="100px"
+                 :disabled="temp.virtual"
+                 style='width: 80%; margin:0 auto;'>
+          <el-form-item :label="$t('table.deviceName')" prop="name">
+            <el-input v-model="temp.name"></el-input>
+          </el-form-item>
+          <el-form-item :label="$t('table.deviceIP')" prop="hostAddress">
+            <el-input v-model="temp.hostAddress"></el-input>
+          </el-form-item>
+          <el-form-item :label="$t('table.devicePath')" prop="deployPath">
+            <el-tooltip placement="top">
+              <div slot="content">此路径为设备接收部署文件的路径。例如:<br/>Windows: C:/test<br/>Linux: /test<br/>Vxworks: /test</div>
+              <el-input v-model="temp.deployPath" placeholder="例如：D:/test"></el-input>
+            </el-tooltip>
+          </el-form-item>
+          <el-form-item :label="$t('table.deviceDesc')" prop="description">
+            <el-input v-model="temp.description"></el-input>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
         <el-button type="primary"
                    @click="createData"
                    style="float: right;"
@@ -38,8 +40,9 @@
         <el-button @click="dialogFormVisible = false" style="float: right;margin-right: 10px">{{$t('table.cancel')}}
         </el-button>
       </span>
-    </el-dialog>
-  </div>
+      </el-dialog>
+    </div>
+  </keep-alive>
 </template>
 
 <script>
@@ -48,7 +51,7 @@
 
   const $ = go.GraphObject.make
   export default {
-    name: 'ClassifyVue',
+    name: 'classifyDevice',
     data() {
       const validateIP = (rule, value, callback) => {
         const exp = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
@@ -74,6 +77,7 @@
         }
       }
       return {
+        modelStore: null,
         proId: '',
         diagram: null,
         palette: null,
@@ -222,8 +226,8 @@
           'Spot', // the Shape automatically fits around the TextBlock
           {
             locationSpot: go.Spot.Center,
-            resizeObjectName: 'PICTURE'
-            // deletable: false
+            resizeObjectName: 'PICTURE',
+            deletable: false
           },
           new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
             go.Point.stringify
@@ -237,7 +241,9 @@
                 name: 'PICTURE',
                 desiredSize: new go.Size(40, 40),
                 cursor: 'pointer',
-                source: 'static/svg/device.svg'
+                source: 'static/svg/device.svg',
+                fromLinkable: true,
+                toLinkable: true
               },
               new go.Binding('desiredSize', 'size', go.Size.parse).makeTwoWay(
                 go.Size.stringify
@@ -287,21 +293,29 @@
             {
               'undoManager.isEnabled': true
             })
+          let nodeData = []
+          if (this.modelStore) {
+            nodeData = this.modelStore.nodeDataArray
+          }
           for (let i = 0; i < this.deviceList.length; i++) {
             const device = this.deviceList[i]
-            this.nodeList.push({
-              category: 'Device',
-              key: device.id,
-              text: device.name
+            const ifExist = nodeData.find(item => {
+              return item.key === device.id
             })
-            // this.addNode(device)
+            if (!ifExist) {
+              nodeData.push({
+                category: 'Device',
+                key: device.id,
+                text: device.name
+              })
+            }
           }
           this.diagram.groupTemplateMap.add('Domain', this.buildDomainNodeTemplate())
           this.diagram.nodeTemplateMap.add('Device', this.buildDeviceNodeTemplate('device'))
-          this.diagram.model = new go.GraphLinksModel(this.nodeList)
+          this.diagram.model = new go.GraphLinksModel(nodeData)
         })
       },
-      initPaltte() {
+      initPalette() {
         this.palette =
           $(go.Palette, 'myPaletteDiv',
             {
@@ -365,13 +379,25 @@
             })
           }
         })
+      },
+      saveModel() {
+        const modelData = JSON.stringify(this.diagram.model.toJson())
+        localStorage.setItem('modelData', modelData)
+        this.$notify({
+          title: '成功',
+          message: '保存成功',
+          type: 'success',
+          duration: 2000
+        })
       }
     },
     created() {
       this.proId = this.getCookie('projectId')
+      const modelData = localStorage.getItem('modelData')
+      this.modelStore = JSON.parse(JSON.parse(modelData))
     },
     mounted() {
-      this.initPaltte()
+      this.initPalette()
       this.init()
     }
   }
