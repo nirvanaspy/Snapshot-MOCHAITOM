@@ -3,7 +3,8 @@
     <div class="classify-container">
       <div class="operate-btn">
         <el-button type="primary" size="mini" style="float: right;" @click="addDevice">添加设备</el-button>
-        <el-button type="success" size="mini" style="float: right;margin-right: 4px;" @click="saveModel">保存布局</el-button>
+        <el-button type="success" size="mini" style="float: right;margin-right: 4px;" @click="saveModel">保存布局
+        </el-button>
       </div>
       <div class="page-diagram" id="myDiagramDiv"></div>
       <div class="page-palette" id="myPaletteDiv"></div>
@@ -294,25 +295,38 @@
               'undoManager.isEnabled': true
             })
           let nodeData = []
+          const initData = []
           if (this.modelStore) {
             nodeData = this.modelStore.nodeDataArray
           }
           for (let i = 0; i < this.deviceList.length; i++) {
             const device = this.deviceList[i]
-            const ifExist = nodeData.find(item => {
+            const ifExistItem = nodeData.find(item => {
               return item.key === device.id
             })
-            if (!ifExist) {
-              nodeData.push({
+            if (!ifExistItem) {
+              initData.push({
                 category: 'Device',
                 key: device.id,
                 text: device.name
               })
+              break
+            }
+            for (let j = 0; j < nodeData.length; j++) {
+              if (device.id === nodeData[j].key) {
+                nodeData[j].text = device.name
+                initData.push(nodeData[j])
+              }
             }
           }
+          nodeData.forEach((item) => {
+            if (item.category !== 'Device') {
+              initData.push(item)
+            }
+          })
           this.diagram.groupTemplateMap.add('Domain', this.buildDomainNodeTemplate())
           this.diagram.nodeTemplateMap.add('Device', this.buildDeviceNodeTemplate('device'))
-          this.diagram.model = new go.GraphLinksModel(nodeData)
+          this.diagram.model = new go.GraphLinksModel(initData)
         })
       },
       initPalette() {
@@ -382,7 +396,7 @@
       },
       saveModel() {
         const modelData = JSON.stringify(this.diagram.model.toJson())
-        localStorage.setItem('modelData', modelData)
+        localStorage.setItem(this.proId, modelData)
         this.$notify({
           title: '成功',
           message: '保存成功',
@@ -393,7 +407,7 @@
     },
     created() {
       this.proId = this.getCookie('projectId')
-      const modelData = localStorage.getItem('modelData')
+      const modelData = localStorage.getItem(this.proId)
       this.modelStore = JSON.parse(JSON.parse(modelData))
     },
     mounted() {
