@@ -310,12 +310,12 @@
                 key: device.id,
                 text: device.name
               })
-              break
-            }
-            for (let j = 0; j < nodeData.length; j++) {
-              if (device.id === nodeData[j].key) {
-                nodeData[j].text = device.name
-                initData.push(nodeData[j])
+            } else {
+              for (let j = 0; j < nodeData.length; j++) {
+                if (device.id === nodeData[j].key) {
+                  nodeData[j].text = device.name
+                  initData.push(nodeData[j])
+                }
               }
             }
           }
