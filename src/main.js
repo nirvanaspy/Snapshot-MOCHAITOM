@@ -125,6 +125,7 @@ function getServerConfig () {
   return new Promise((resolve, reject) => {
     axios.get('./static/serverConfig.json').then(result => {
       let config = result.data;
+      console.log(config)
       for (let key in config) {
         Vue.prototype[key] = config[key];
       }

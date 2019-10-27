@@ -91,12 +91,12 @@
               远程
             </el-button>
           </router-link>-->
-          <el-button size="mini" type="warning" v-if="!scope.row.virtual && scope.row.online" @click="handleRouter(scope.row)">
+          <!--<el-button size="mini" type="warning" v-if="!scope.row.virtual && scope.row.online" @click="handleRouter(scope.row)">
             远程
-          </el-button>
+          </el-button>-->
           <el-button type="primary" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" size="mini">{{$t('table.deviceProcess')}}</el-button>
           <el-button size="mini" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" type="success">{{$t('table.disk')}}</el-button>
-          <el-button type="warning" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" size="mini">远程</el-button>
+          <!--<el-button type="warning" disabled="disabled" v-if="!scope.row.online || scope.row.virtual" size="mini">远程</el-button>-->
         </template>
       </el-table-column>
       <el-table-column align="center" :label="$t('table.actions')" width="140" class-name="small-padding fixed-width">

@@ -406,7 +406,7 @@
     methods: {
       getList() {
         this.listLoading = true
-        compList(this.projectId,this.listQuery).then(response => {
+        compList(this.projectId, this.listQuery).then(response => {
           this.isHistory = false
           this.list = response.data.data.content
           this.total = response.data.data.totalElements

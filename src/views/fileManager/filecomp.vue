@@ -70,6 +70,16 @@
           </span>
         </template>
       </el-table-column>
+      <el-table-column label="MD5" min-width="200">
+        <template slot-scope="scope">
+          <span v-if="scope.row.fileEntity">
+            {{scope.row.fileEntity.md5}}
+          </span>
+          <span v-else>
+            --
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column width="120" :label="$t('table.compSize')">
         <template slot-scope="scope">
           <span v-if="scope.row.folder !== true">{{computedSize(scope.row.fileEntity.size)}}</span>

@@ -167,11 +167,11 @@ export const asyncRouterMap = [
     hidden: true,
     children: [{ path: 'vnc/:id', component: _import('connectVNC/index'), name: 'connectvnc', meta: { title: 'vnc', icon: 'example' }}]
   },
-  {
+  /* {
     path: '/novnc',
     component: Layout,
     children: [{ path: 'flexNovnc', component: _import('novnc/flexNovnc'), name: 'flexNovnc', meta: { title: '多布局VNC', icon: 'log' }}]
-  },
+  },*/
   {
     path: '/comps',
     component: Layout,
@@ -208,4 +208,9 @@ export const asyncRouterMap = [
     hidden: true,
     children: [{ path: '', component: _import('device/ClassifyDevice'), name: 'classifyDevice', meta: { title: '设备拓扑结构', icon: 'computer', noCache: true }}]
   }
+  /* {
+    path: '/file',
+    component: Layout,
+    children: [{ path: 'index', component: _import('importLocalFile/index'), name: 'file', meta: { title: 'file', icon: 'log' }}]
+  }*/
 ]

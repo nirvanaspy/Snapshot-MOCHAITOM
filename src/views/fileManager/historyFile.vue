@@ -69,6 +69,16 @@
           </span>
         </template>
       </el-table-column>
+      <el-table-column label="MD5" min-width="200">
+        <template slot-scope="scope">
+          <span v-if="scope.row.fileEntity">
+            {{scope.row.fileEntity.md5}}
+          </span>
+          <span v-else>
+            --
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column min-width="150px" label="创建时间">
         <template slot-scope="scope">
           <span>{{scope.row.createTime}}</span>
