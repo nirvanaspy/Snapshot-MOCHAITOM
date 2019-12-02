@@ -325,26 +325,6 @@
                 }
               }
             }
-            /*if(that.webResBody.length > 0){
-              for(let i=0;i<that.webResBody.length;i++){
-                let listIfExist = false;
-                let tempList = [];
-                if(that.list.length > 0){
-                  for(let j=0;j<that.list.length;j++){
-                    if(that.list[j].virtual !== true){       //虚拟设备不需要再赋值  或者在每次查之前把虚拟且离线的设备删除
-                      if(that.webResBody[i].inetAddress === that.list[j].ip){      //查找在线设备
-                        that.list[j].online = true;
-                        that.list[j].cpuclock = that.webResBody[i].cpuclock;
-                        that.list[j].ramsize = that.webResBody[i].ramsize;
-                        that.list[j].virtual = false;
-                        listIfExist = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-            }*/
             if(that.webResBody) {
               $.each(that.webResBody, function (key, value) {
                 let listIfExist = false;
@@ -363,11 +343,6 @@
                               }
                             }
                           }
-
-                          /*that.list[j].cpuClock = value.cpuClock;
-                          that.list[j].cpuUtilization = value.cpuUtilization;
-                          that.list[j].ramTotalSize = value.ramTotalSize;
-                          that.list[j].ramFreeSize = value.ramFreeSize;*/
                           that.list[j].virtual = false;
                           listIfExist = true;
                           break;
@@ -408,7 +383,6 @@
                             if(that.list[j].progress !== 100){
                               that.list[j].comps[k].ifComplete = false;
                               that.list[j].comps[k].ifWait = true;
-                              //that.list[j].comps[k].ifWait = true;
                             }else{
                               that.list[j].comps[k].ifComplete = true;
                               that.list[j].comps[k].ifWait = false;
@@ -421,10 +395,8 @@
                 }
               }
             }
-
-            // $("#onlineheartbeatmessages2").html(response.body);
-          });
-        });
+          })
+        })
 
       },
 
@@ -450,23 +422,6 @@
 
         }
       },
-
-      /*getDetailByNode(row, index) {
-        // this.isExpand = false
-        let uniqueId = this.deployPlanId + row.id
-        this.selectedDeviceId = row.id
-        this.selectedDeviceName = row.deviceEntity.name
-        this.selectedCompId = ''
-        this.selectedCompName = ''
-        // getDeployDetailByDevice(this.deployPlanId, row.id).then((res) => {
-        getNodeDetail(row.id).then((res) => {
-          this.deviceDetail = res.data.data
-          this.expands = []
-          this.list[index].comps = res.data.data
-          this.deviceExpands.push(row.id)
-          this.checkOrder(uniqueId)
-        })
-      },*/
 
       deployByNode: function (row) {
         let id = row.id;
@@ -586,12 +541,8 @@
         let id = row.id;
         let deviceId = row.deploymentDesignNodeEntity.deviceEntity.id;
 
-        console.log(row)
-
         let ifOnline = false;
 
-        console.log("list----------")
-        console.log(this.list)
         for(let i=0;i<this.list.length;i++){
           if(this.list[i].deviceEntity !== null && deviceId === this.list[i].deviceEntity.id && this.list[i].online){
             ifOnline = true;
@@ -607,21 +558,14 @@
               type: 'warning'
             }).then(() => {
               row.ifRestart = true;
-              console.log("测试----")
-              console.log(row.deploymentDesignNodeEntity.id);
               for(let i = 0; i < this.list.length; i++){
                 console.log(this.list[i].id)
                 if(row.deploymentDesignNodeEntity.id === this.list[i].id){
                   for(let j=0;j<this.list[i].comps.length;j++){
                     this.list[i].comps[j].ifWait = true;
                   }
-
-                  console.log(this.list[i].comps)
                 }
-
               }
-
-
               //document.getElementById("compSvg").icon-class = "restart.svg";
               deployByDeploymentDesignDetailId(id).then(() => {
                 this.$notify({

@@ -10,6 +10,7 @@
       <span v-if="this.selectedDeviceName" style="margin-right: 10px">当前选中设备:{{selectedDeviceName}}</span>
       <span v-if="this.selectedCompName">组件:{{selectedCompName}}</span>
       <div class="btn-group" style="float:right;">
+        <el-button type="primary" style="width: 120px;margin-right: 10px;" @click="scanMultiDevice">同时扫描</el-button>
         <el-dropdown style="margin-right: 10px;">
           <el-button type="primary">
             完整扫描
@@ -53,8 +54,10 @@
                 style="width: 100%;height:100%;overflow-y: scroll"
                 :row-key="getRowKeysComp"
                 :expand-row-keys="deviceExpands"
+                @selection-change="handleCheckedDevice"
                 class="deviceList"
       >
+        <el-table-column width="55" type="selection" :reserve-selection="true"></el-table-column>
         <el-table-column align="left" width="40" type="expand">
           <template slot-scope="props">
             <el-table
@@ -262,7 +265,7 @@
     </el-dialog>
 
     <!--扫描结果弹框-->
-    <el-dialog title="扫描结果" :visible.sync="resDialogVisible" append-to-body width="40%" class="scanResDialog">
+    <el-dialog title="扫描结果" :visible.sync="resDialogVisible" append-to-body width="60%" class="scanResDialog">
       <div slot="title">
         {{scanResTitle}}
         <div style="display: inline-block; margin-left: 10px;">
@@ -289,11 +292,6 @@
           <el-table :data="resDataList.correctFiles" stripe fit width="100%" :show-header="false">
             <el-table-column label="文件名称" prop="name" min-width="240">
             </el-table-column>
-            <!--<el-table-column label="文件名称" min-width="240">
-              <template slot-scope="scope">
-                <span>{{scope.row.name}}</span>
-              </template>
-            </el-table-column>-->
             <el-table-column label="路径" prop="targetPath" min-width="240">
             </el-table-column>
             <el-table-column prop="correct" label="状态" align="center" width="80">
@@ -382,6 +380,7 @@
         deviceDetail: [],
         fileInfo: [],
         fileResult: [],
+        checkedDevices: [],
         total: 0,
         listQuery: {
           page: 0,
@@ -415,7 +414,8 @@
         resDataList: {},
         activeResPane: 'correct',
         searchQuery: '',
-        scanResTitle: '扫描结果'
+        scanResTitle: '扫描结果',
+        promiseList: []
       }
     },
     created() {
@@ -469,17 +469,6 @@
             });
 
             //指定可以被索引的字段，unique字段是否唯一
-
-            /*that.dbObjectStore.createIndex("deployplanId", "deployplanId", {
-              unique: false
-            });
-
-            that.dbObjectStore.createIndex("designNodeId", "designNodeId", {
-              unique: false
-            });
-            that.dbObjectStore.createIndex("nodeDetailId", "nodeDetailId", {
-              unique: false
-            });*/
             that.dbObjectStore.createIndex("id", "id", {
               unique: true
             });
@@ -491,9 +480,9 @@
         if(!this.myDB) {
           return
         }
-        var tx = this.myDB.transaction('orderConfig', 'readwrite');
-        var store = tx.objectStore('orderConfig');
-        var req = store.put({
+        const tx = this.myDB.transaction('orderConfig', 'readwrite');
+        const store = tx.objectStore('orderConfig');
+        const req = store.put({
           id: id,
           deployplanId: this.deployPlanId,
           designNodeId: this.selectedDeviceId,
@@ -505,17 +494,38 @@
           alert('error')
         };
       },
+      addOrderByPromise(id, orderId) {
+        return new Promise((resolve, reject) => {
+          if(!this.myDB) {
+            reject('not support localDB')
+          } else {
+            const tx = this.myDB.transaction('orderConfig', 'readwrite')
+            const store = tx.objectStore('orderConfig')
+            const req = store.put({
+              id: id,
+              deployplanId: this.deployPlanId,
+              designNodeId: this.selectedDeviceId,
+              nodeDetailId: this.selectedCompId,
+              orderId: orderId })
+            req.onsuccess = function (evt) {
+              resolve('save orderId success')
+            }
+            req.onerror = function() {
+              reject('save orderId failed')
+            }
+          }
+        })
+
+      },
       checkOrder(id) {
         let that = this
         if(!this.myDB) {
           return
         }
-        var tx = this.myDB.transaction('orderConfig', 'readwrite');
-        var store = tx.objectStore('orderConfig');
-        var req = store.get(id);
+        const tx = this.myDB.transaction('orderConfig', 'readwrite');
+        const store = tx.objectStore('orderConfig');
+        const req = store.get(id);
         req.onsuccess = function (evt) {
-          // alert('getsucess')
-          // alert(evt.target.result.orderId)
           if(evt.target.result) {
             getResultByOrder(evt.target.result.orderId).then((res) => {
               const compResult = res.data.data
@@ -568,12 +578,6 @@
       getNodeList() {
         this.listLoading = true;
         deployNodeList(this.deployPlanId, this.listQuery).then(response => {
-          /*this.deviceList = []
-          response.data.data.content.forEach((item) => {
-            if(item.deviceEntity) {
-              this.deviceList.push(item)
-            }
-          })*/
           this.deviceList = response.data.data.content
           this.listLoading = false
           this.total = response.data.data.totalElements
@@ -597,20 +601,6 @@
                 that.deviceList[i].online = false
               }
             }
-            /*if (that.webResBody.length > 0) {
-              for (let i = 0; i < that.webResBody.length; i++) {
-                let listIfExist = false
-                let tempList = []
-                if (that.deviceList.length > 0) {
-                  for (let j = 0; j < that.deviceList.length; j++) {
-                    if (that.webResBody[i].inetAddress === that.deviceList[j].ip) {      //查找在线设备
-                      that.deviceList[j].online = true
-                      break
-                    }
-                  }
-                }
-              }
-            }*/
             if(that.webResBody){
               $.each(that.webResBody, function (key, value) {
                 let listIfExist = false;
@@ -627,7 +617,6 @@
                 }
               })
             }
-
             if (that.deviceList.length > 0) {
               for (let i = 0; i < that.deviceList.length; i++) {
                 Vue.set(that.deviceList, i, that.deviceList[i])
@@ -635,7 +624,6 @@
             }
           })
         })
-
       },
       getDetailByNode(row, index) {
         // this.isExpand = false
@@ -673,7 +661,7 @@
           })
           return
         }
-        for (var i = 0; i < this.deviceList.length; i++) {
+        for (let i = 0; i < this.deviceList.length; i++) {
           if (this.selectedDeviceId == this.deviceList[i].id) {
             if (this.deviceList[i].online === true) {
               this.$notify({
@@ -692,7 +680,7 @@
                 const compResult = res.data.data
                 this.expands = []
                 this.deviceDetail = compResult
-                for (var j = 0; j < this.deviceDetail.length; j++) {
+                for (let j = 0; j < this.deviceDetail.length; j++) {
                   this.expands.push(this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity.id)
                   this.deviceDetail[j].componentHistoryEntity = this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
                   this.deviceDetail[j].correctFiles = []
@@ -737,58 +725,6 @@
             }
           }
         }
-        /*scanDevice(this.deployPlanId, this.selectedDeviceId).then((res) => {
-          const compResult = res.data.data
-          /!*for (var i = 0; i < compResult.length; i++) {
-            for (var j = 0; j < this.fileInfo.length; j++) {
-              if(compResult[i].componentEntity.id === this.fileInfo[j].componentEntity.id) {
-                this.fileInfo[j].modifyedFiles = compResult[i].modifyedFiles
-                this.fileInfo[j].missingFiles = compResult[j].missingFiles
-                this.fileInfo[j].unknownFiles = compResult[j].unknownFiles
-                this.fileInfo[j].correctFiles = compResult[j].correctFiles
-                // this.fileInfo[j].files.concat(compResult[i].modifyedFiles).concat(compResult[i].missingFiles).concat(compResult[i].unknownFiles).concat(compResult[i].correctFiles)
-              }
-            }
-          }*!/
-          this.fileResult = [
-            {
-              correctFiles:[{deployPath:'1', id:'1'}]
-            },
-            {
-              correctFiles:[{deployPath:'2', id:'2'}]
-            }
-          ]
-          /!*for(var i = 0; i < this.fileInfo.length; i++) {
-            for(var j = 0; j < compResult.length; j++ ) {
-              if(this.fileInfo[i].componentEntity.id === compResult[j].componentEntity.id) {
-                let resFile = {
-                  modifyedFiles: [],
-                  missingFiles: [],
-                  unknownFiles: [],
-                  correctFiles: []
-                }
-                resFile.modifyedFiles = compResult[j].modifyedFiles,
-                resFile.missingFiles = compResult[j].missingFiles,
-                resFile.unknownFiles = compResult[j].unknownFiles,
-                resFile.correctFiles = compResult[j].correctFiles,
-               /!* res = {
-                  modifyedFiles: compResult[j].modifyedFiles,
-                  missingFiles: compResult[j].missingFiles,
-                  unknownFiles: compResult[j].unknownFiles,
-                  correctFiles: compResult[j].correctFiles
-                }*!/
-                this.fileResult.push(res)
-              }
-            }
-          }*!/
-          console.log(this.fileResult)
-          this.$notify({
-            title: '成功',
-            message: '扫描成功',
-            type: 'success',
-            duration: 2000
-          })
-        })*/
       },
       scanAllByComp() {
         if (this.selectedDeviceId == '') {
@@ -805,50 +741,13 @@
           })
           return
         }
-        for (var i = 0; i < this.deviceList.length; i++) {
+        for (let i = 0; i < this.deviceList.length; i++) {
           if (this.selectedDeviceId == this.deviceList[i].id) {
             if (this.deviceList[i].online === true) {
               this.scanLoading = true
               scanNodeDetail(this.selectedCompId).then((res) => {
                 let uniqueId = this.deployPlanId + this.selectedDeviceId + this.selectedCompId
                 this.addOrder(uniqueId, res.data.data.orderId)
-                this.scanLoading = false
-                this.deviceDetail = []
-                this.expands = []
-                this.deviceDetail.push(res.data.data)
-                // this.expands.push(res.data.data.componentEntity.id)
-                this.expands.push(res.data.data.deploymentDesignDetailEntity.componentHistoryEntity.id)
-
-                for(var j = 0; j < this.deviceDetail.length; j++ ) {
-                  this.deviceDetail[j].componentHistoryEntity = this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
-                  this.deviceDetail[j].correctFiles = []
-                  this.deviceDetail[j].missingFiles = []
-                  this.deviceDetail[j].modifyedFiles = []
-                  this.deviceDetail[j].unknownFiles = []
-                  this.deviceDetail[j].result.forEach((item) => {
-                    if(item.type === 0) {
-                      this.deviceDetail[j].correctFiles.push(item)
-                    }
-                    if(item.type === 1) {
-                      this.deviceDetail[j].modifyedFiles.push(item)
-                    }
-                    if(item.type === 2) {
-                      this.deviceDetail[j].unknownFiles.push(item)
-                    }
-                    if(item.type === 3) {
-                      this.deviceDetail[j].missingFiles.push(item)
-                    }
-                  })
-                }
-                /*console.log(this.expands)
-                console.log('组件扫描')
-                console.log(this.deviceDetail)*/
-                this.$notify({
-                  title: '成功',
-                  message: '组件完整扫描成功',
-                  type: 'success',
-                  duration: 2000
-                })
               }).catch(() => {
                 this.scanLoading = false
                 this.$notify({
@@ -881,17 +780,6 @@
         this.dialogFormVisible = true
       },
       handleScanQuickByComp() {
-        /*for(var i = 0; i < this.deviceList.length; i++) {
-          if (this.selectedDeviceId == this.deviceList[i].id) {
-            if (!this.deviceList[i].online) {
-              this.$message({
-                message: '设备离线！',
-                type: 'warning'
-              })
-              return
-            }
-          }
-        }*/
         if (this.selectedDeviceId == '') {
           this.$message({
             message: '请先双击选择设备！',
@@ -911,7 +799,7 @@
         this.dialogFormVisible = true
       },
       scanQuickByDevice() {
-        for (var i = 0; i < this.deviceList.length; i++) {
+        for (let i = 0; i < this.deviceList.length; i++) {
           if (this.selectedDeviceId == this.deviceList[i].id) {
             if (this.deviceList[i].online === true) {
               this.$notify({
@@ -921,14 +809,11 @@
                 duration: 2000
               })
               this.scanLoading = true
-              // scanQucikByDev(this.deployPlanId, this.selectedDeviceId, this.type1).then((res) => {
               scanQuickNode(this.selectedDeviceId, this.type1).then((res) => {
                 this.scanLoading = false
-                // this.deviceDetail = []
-                // this.deviceDetail.push(res.data.data)
                 this.deviceDetail = res.data.data
                 this.expands = []
-                for (var k = 0; k < this.deviceDetail.length; k++) {
+                for (let k = 0; k < this.deviceDetail.length; k++) {
                   this.expands.push(this.deviceDetail[k].deploymentDesignDetailEntity.componentHistoryEntity.id)
                   this.deviceDetail[k].componentHistoryEntity = this.deviceDetail[k].deploymentDesignDetailEntity.componentHistoryEntity
                   this.deviceDetail[k].correctFiles = []
@@ -977,7 +862,7 @@
         }
       },
       scanQuickByComp() {
-        for (var i = 0; i < this.deviceList.length; i++) {
+        for (let i = 0; i < this.deviceList.length; i++) {
           if (this.selectedDeviceId == this.deviceList[i].id) {
             if (this.deviceList[i].online === true) {
               this.$notify({
@@ -987,7 +872,6 @@
                 duration: 2000
               })
               this.scanLoading = true
-              // scanQucikByComp(this.deployPlanId, this.selectedDeviceId, this.selectedCompId, this.type1).then((res) => {
               scanQuickNodeDetail(this.selectedCompId, this.type1).then((res) => {
                 this.scanLoading = false
                 this.deviceDetail = []
@@ -996,7 +880,7 @@
                 // this.expands.push(res.data.data.componentEntity.id)
                 this.expands.push(res.data.data.deploymentDesignDetailEntity.componentHistoryEntity.id)
 
-                for(var j = 0; j < this.deviceDetail.length; j++ ) {
+                for(let j = 0; j < this.deviceDetail.length; j++ ) {
                   this.deviceDetail[j].componentHistoryEntity = this.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
                   this.deviceDetail[j].correctFiles = []
                   this.deviceDetail[j].missingFiles = []
@@ -1049,6 +933,76 @@
         this.activeResPane = type
         this.searchQuery = ''
         this.resDialogVisible = true
+      },
+      scanDeviceByPromise(device) {
+        let P = new Promise((resolve, reject) => {
+          let deviceId = device.id
+          scanNode(deviceId).then((res) => {
+            let uniqueId = this.deployPlanId + deviceId
+            this.addOrderByPromise(uniqueId, res.data.data[0].orderId).then(() => {
+              this.$notify({
+                title: '成功',
+                message: `${device.deviceEntity.hostAddress}扫描成功！`,
+                type: 'success',
+                duration: 2000
+              })
+              resolve()
+            }).catch(() => {
+              reject()
+            })
+          }).catch(() => {
+            this.$notify({
+              title: '失败',
+              message: `${device.deviceEntity.hostAddress}扫描失败！`,
+              type: 'error',
+              duration: 2000
+            })
+            reject()
+          })
+        })
+        return P
+      },
+      handleCheckedDevice(val) {
+        this.checkedDevices = val
+      },
+      scanMultiDevice() {
+        this.$confirm('扫描多台设备耗时较长，确认进行吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.promiseList = []
+          this.scanLoading = true
+          if(this.checkedDevices.length === 0) {
+            this.$message.warning('请先选择需要扫描的设备！')
+            this.scanLoading = false
+            return
+          }
+          this.checkedDevices.forEach(checked => {
+            if(checked.deviceEntity) {
+              let device = this.deviceList.find(device => device.id === checked.id)
+              if(device && device.online) {
+                this.promiseList.push(this.scanDeviceByPromise(device))
+              }
+            }
+          })
+          if(this.promiseList.length === 0) {
+            this.scanLoading = false
+            this.$message.warning('当前无在线设备！')
+            return
+          }
+          Promise.all(this.promiseList).then(() => {
+            this.scanLoading = false
+            this.$notify({
+              title: '成功',
+              message: '所有在线设备已扫描结束，请双击设备以查看扫描结果！',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }).catch(() => {
+          this.$message.info('已取消同时扫描！')
+        })
       }
     },
     computed: {
@@ -1092,14 +1046,6 @@
           }
         }
       }
-      /*deviceListB: function () {
-        let self = this;
-        return self.deviceList.filter(function (item) {
-          if(item.deviceEntity) {
-            return item
-          }
-        })
-      },*/
     }
   }
 </script>
