@@ -93,7 +93,10 @@
         </el-table-column>
         <el-table-column align="left" :label="$t('table.deviceName')" min-width="160">
           <template slot-scope="scope">
-            <span v-if="scope.row.deviceEntity !== null" class="link-type" @dblclick="getDetailByNode(scope.row, scope.$index)">{{scope.row.deviceEntity.name}}</span>
+            <span v-if="scope.row.deviceEntity !== null" class="link-type" @dblclick="getDetailByNode(scope.row, scope.$index)">
+              {{scope.row.deviceEntity.name}}
+              <svg-icon icon-class="scan_success" v-if="scope.row.scanSuccess"></svg-icon>
+            </span>
             <span v-else>暂未绑定设备</span>
           </template>
         </el-table-column>
@@ -215,6 +218,12 @@
         <el-table-column align="center" label="路径" min-width="130">
           <template slot-scope="scope">
             <span class="link-type" :class="computedClass(scope.row)">{{scope.row.componentHistoryEntity.relativePath}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="扫描时间" min-width="130">
+          <template slot-scope="scope">
+            <span v-if="scope.row.createTime">{{scope.row.createTime}}</span>
+            <span v-else>--</span>
           </template>
         </el-table-column>
         <el-table-column align="center" label="扫描结果" min-width="130">
@@ -531,7 +540,7 @@
               const compResult = res.data.data
               that.expands = []
               that.deviceDetail = compResult
-              for (var j = 0; j < that.deviceDetail.length; j++) {
+              for (let j = 0; j < that.deviceDetail.length; j++) {
                 that.expands.push(that.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity.id)
                 that.deviceDetail[j].componentHistoryEntity = that.deviceDetail[j].deploymentDesignDetailEntity.componentHistoryEntity
                 that.deviceDetail[j].correctFiles = []
@@ -946,9 +955,13 @@
                 type: 'success',
                 duration: 2000
               })
+              let item = this.deviceList.find(item => item.id === deviceId)
+              if(item) {
+                item.scanSuccess = true
+              }
               resolve()
             }).catch(() => {
-              reject()
+              resolve('error')
             })
           }).catch(() => {
             this.$notify({
@@ -957,7 +970,7 @@
               type: 'error',
               duration: 2000
             })
-            reject()
+            resolve('error')
           })
         })
         return P
@@ -966,6 +979,11 @@
         this.checkedDevices = val
       },
       scanMultiDevice() {
+        if(this.checkedDevices.length === 0) {
+          this.$message.warning('请先选择需要同时扫描的设备！')
+          this.scanLoading = false
+          return
+        }
         this.$confirm('扫描多台设备耗时较长，确认进行吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -973,11 +991,6 @@
         }).then(() => {
           this.promiseList = []
           this.scanLoading = true
-          if(this.checkedDevices.length === 0) {
-            this.$message.warning('请先选择需要扫描的设备！')
-            this.scanLoading = false
-            return
-          }
           this.checkedDevices.forEach(checked => {
             if(checked.deviceEntity) {
               let device = this.deviceList.find(device => device.id === checked.id)
@@ -1001,6 +1014,7 @@
             })
           })
         }).catch(() => {
+          this.scanLoading = false
           this.$message.info('已取消同时扫描！')
         })
       }
