@@ -69,12 +69,18 @@
           </span>
         </template>
       </el-table-column>
+      <el-table-column min-width="150px" label="文件md5">
+        <template slot-scope="scope">
+          <span v-if="scope.row.fileEntity">{{scope.row.fileEntity.md5}}</span>
+          <span v-else>--</span>
+        </template>
+      </el-table-column>
       <el-table-column min-width="150px" label="创建时间">
         <template slot-scope="scope">
           <span>{{scope.row.createTime}}</span>
         </template>
       </el-table-column>
-      <el-table-column width="40px">
+      <el-table-column width="40px" fixed="right">
         <template slot-scope="scope">
           <el-dropdown v-if="scope.row.name" trigger="click">
             <el-tooltip class="item" effect="dark" content="更多操作" placement="top">

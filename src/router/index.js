@@ -353,11 +353,11 @@ export const asyncRouterMap = [
     hidden: true,
     children: [{ path: 'vnc/:id', component: _import('connectVNC/index'), name: 'connectvnc', meta: { title: 'vnc', icon: 'example' }}]
   },
-  {
+  /* {
     path: '/novnc',
     component: Layout,
     children: [{ path: 'flexNovnc', component: _import('novnc/flexNovnc'), name: 'flexNovnc', meta: { title: '多布局VNC', icon: 'log' }}]
-  },
+  },*/
   {
     path: '/comps',
     component: Layout,
@@ -392,6 +392,6 @@ export const asyncRouterMap = [
     path: '/simulation',
     component: Layout,
     hidden: true,
-    children: [{ path: 'simulation/:id', component: _import('simulation/simulation'), name: 'simulation', meta: { title: 'simulation', icon: 'excel' }}]
+    children: [{ path: 'simulation/:id', component: _import('simulation/simulation'), name: 'simulation', meta: { title: '仿真', icon: 'excel' }}]
   }
 ]
