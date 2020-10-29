@@ -757,6 +757,13 @@
               scanNodeDetail(this.selectedCompId).then((res) => {
                 let uniqueId = this.deployPlanId + this.selectedDeviceId + this.selectedCompId
                 this.addOrder(uniqueId, res.data.data.orderId)
+                this.scanLoading = false
+                this.$notify({
+                  title: '成功',
+                  message: '组件完整扫描成功',
+                  type: 'success',
+                  duration: 2000
+                })
               }).catch(() => {
                 this.scanLoading = false
                 this.$notify({

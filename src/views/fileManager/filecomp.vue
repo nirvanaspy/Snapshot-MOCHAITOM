@@ -49,7 +49,7 @@
               </span>
             </el-tooltip>
             <span v-if="scope.row.newFolder">
-              <el-input @keyup.enter.native="newFoler"
+              <el-input @keyup.enter.native="newFolder"
                         ref="newFolderInput"
                         autofocus="autofocus"
                         v-model="newFolderName"
@@ -156,7 +156,6 @@
         </uploader>
       <span slot="footer" class="dialog-footer">
         <el-button v-if="!hiddenClose" @click="uploadDialog = false">关 闭</el-button>
-        <!--<el-button type="primary" @click="uploadFile" :loading="upFileLoading">确 定</el-button>-->
       </span>
     </el-dialog>
     <!--上传文件夹弹框-->
@@ -188,7 +187,6 @@
       </uploader>
       <span slot="footer" class="dialog-footer">
         <el-button v-if="!hiddenClose" @click="uploadFolderDialog = false">关 闭</el-button>
-        <!--<el-button type="primary" @click="upload_Folder" :loading="upFolderLoading">确 定</el-button>-->
       </span>
     </el-dialog>
     <!--文件夹移动、复制操作-->
@@ -394,26 +392,9 @@
             duration: 2000
           })
         })
-        /*compList(this.projectId).then(response => {
-          this.list = response.data.data.content
-          this.total = response.data.total
-          this.listLoading = false
-          /!*this.oldList = this.list.map(v => v.id);
-          this.newList = this.oldList.slice();
-          this.$nextTick(() => {
-            this.setSort()
-          })*!/
-
-          console.log(this.list);
-        })*/
       },
       loadListFile(row) {
         if(row.folder){
-          /*if(row.parentNode && row.parentNode != null) {
-            this.parentNodeId = row.parentNode
-          } else {
-            this.parentNodeId = ''
-          }*/
           this.parentNodeId = row.id
           this.listLoading = true
           getCompFiles(this.componentId,this.parentNodeId).then((res) => {
@@ -425,9 +406,6 @@
               parentNodeId: row.id,
               folder: true
             })
-            // console.log(this.breadcrumbList)
-            /*this.parentNodeId = ''
-            alert(this.parentNodeId)*/
           }).catch(() => {
             this.listLoading = false
             this.$notify({
@@ -441,31 +419,6 @@
           return
         }
       },
-      // 取消文件上传的操作
-      /*fileClose() {
-        this.$confirm('关闭后上传将被终止，确认关闭吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.fileReader.abort()
-          this.$refs.uploader.uploader.cancel()
-          this.uploadDialog = false
-          this.md5Loading = false
-        })
-      },
-      folderClose() {
-        this.$confirm('关闭后上传将被终止，确认关闭吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.fileReader.abort()
-          this.$refs.uploaderFolder.uploader.cancel()
-          this.uploadFolderDialog = false
-          this.md5Loading = false
-        })
-      },*/
       addFolder() {
         if(this.list.length === 0) {
           let newFolder = {
@@ -483,7 +436,7 @@
           this.list.splice(0, 0, newFolder);
         }
       },
-      newFoler() {
+      newFolder() {
         if(this.newFolderName) {
           this.list.splice(0, 1);
           let formData = new FormData();
@@ -556,14 +509,6 @@
             console.log(result)
             fileA.md5 = result
             fileA.uniqueIdentifier = result
-            /*axios.get('http://192.168.31.13:8080/files/hasmd5',{
-              headers: {
-                "content-type": "application/x-www-form-urlencoded"
-              },
-              params: {
-                MD5: fileA.md5
-              }
-            })*/
             hasMd5(fileA.md5).then((res) => {
               if (res.data.data.id) {
                 completeFlag++
@@ -594,113 +539,17 @@
                   '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
                 that.$refs.uploader.uploader.removeFile(fileA)
                 that.fileCompleteLength += 1 // 中和上传控件触发的removeFile事件的自减1
-                // let notiMes = '文件' + fileA.name + '上传成功！'
                 that.listLoading = false
-                /*that.$notify({
-                  title: '成功',
-                  message: notiMes,
-                  type: 'success',
-                  duration: 2000
-                })*/
+
 
                 if(completeFlag === fileAdded.length) {
                   that.md5Loading = false
-                  /*if(that.$refs.uploader.uploader.files.length === 0) {
-                    let datapost = JSON.stringify(that.fileInfoList)
-                    console.log(datapost)
-                    uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '成功',
-                        message: '文件上传成功',
-                        type: 'success',
-                        duration: 2000
-                      })
-
-                      that.getList()
-                    }).catch(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '失败',
-                        message: '文件上传失败',
-                        type: 'error',
-                        duration: 2000
-                      })
-                    })
-                  }*/
                   that.$refs.uploader.uploader.upload()
                 }
-                // let datapost = JSON.stringify(infoList)
-                /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
-                  headers: {
-                    'content-type': 'application/json;charset=utf-8', //设置请求头信息
-                    'parentNodeId': that.parentNodeId
-                  }
-                })*/
-                // that.listLoading = false
-                /*uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                  let resVal = ''
-                  let val = fileA.size
-                  if( val < 1024 ) {
-                    resVal = val + ' B'
-                  } else if(val >= 1024 && val < 1048576 ) {
-                    resVal = Math.round(val/1024*10)/10 + ' KB'
-                  } else if(val >= 1048576 && val < 1073741824) {
-                    resVal = Math.round(val/1048576*10)/10 + ' MB'
-                  } else if(val >= 1073741824) {
-                    // 2653276160
-                    resVal = Math.round(val/1073741824*10)/10 + ' G'
-                  }
-                  $('.uploader-list ul').prepend('<div status="success" class="uploader-file">' +
-                    '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
-                    '<div class="uploader-file-info">' +
-                    '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
-                    '</div> <div class="uploader-file-size">'+ resVal +
-                    '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
-                  that.$refs.uploader.uploader.removeFile(fileA)
-                  let notiMes = '文件' + fileA.name + '上传成功！'
-                  that.listLoading = false
-                  that.$notify({
-                    title: '成功',
-                    message: notiMes,
-                    type: 'success',
-                    duration: 2000
-                  })
-
-                  if(completeFlag === fileAdded.length) {
-                    that.md5Loading = false
-                    that.$refs.uploader.uploader.upload()
-                  }
-                  that.getList()
-                })*/
               } else if (res.data.data == false) {
                 completeFlag++
                 if(completeFlag === fileAdded.length) {
                   that.md5Loading = false
-                  /*if(that.$refs.uploader.uploader.files.length === 0) {
-                    let datapost = JSON.stringify(that.fileInfoList)
-                    console.log(datapost)
-                    uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '成功',
-                        message: '文件上传成功',
-                        type: 'success',
-                        duration: 2000
-                      })
-                      that.getList()
-                    }).catch(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '失败',
-                        message: '文件上传失败',
-                        type: 'error',
-                        duration: 2000
-                      })
-                    })
-                  }*/
-                  // let allFile = that.$refs.uploader.uploader.files
-                  // console.log(allFile)
                   that.$refs.uploader.uploader.upload()
                 }
               }
@@ -758,11 +607,6 @@
           'relativePath': path
         }
         let datapost = qs.stringify(data)
-        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          }
-        })*/
         mergeFile(datapost).then(() => {
         }).catch(() => {
           this.$notify({
@@ -797,48 +641,12 @@
             relativePath: '/' + arguments[1].relativePath
           }
           this.fileInfoList.push(infoList)
-          // let datapost = JSON.stringify(infoList)
-          /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
-            headers: {
-              'content-type': 'application/json;charset=utf-8', //设置请求头信息
-              'parentNodeId': this.parentNodeId
-            }
-          })*/
-          /*let notiMes = '文件' + arguments[1].name + '上传成功！'
-          uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
-            this.listLoading = false
-            this.$notify({
-              title: '成功',
-              message: notiMes,
-              type: 'success',
-              duration: 2000
-            })
-
-            this.getList()
-          })*/
         })
 
       },
       // 上传文件夹时 fileComplete 第一个参数为根文件（文件夹），第二个参数为最后一个上传的文件
       fileComplete () {
         console.log('filecomplete=======')
-        // console.log('file complete', arguments)
-        // console.log(this.$refs.uploader.uploader.files)
-        // alert(arguments[1].uniqueIdentifier)
-        // this.mergeFile(zenFile.md5, chunks, file.size)
-        // this.mergeFile(arguments[0].uniqueIdentifier, arguments[0].chunks.length, arguments[0].size)
-        /*let datapost = JSON.stringify(this.fileInfoList)
-        let notiMes = '文件' + arguments[1].name + '上传成功！'
-        uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
-          this.listLoading = false
-          this.$notify({
-            title: '成功',
-            message: notiMes,
-            type: 'success',
-            duration: 2000
-          })
-          this.getList()
-        })*/
       },
       complete () {
         // console.log('complete', arguments)
@@ -870,102 +678,15 @@
                 }
                 that.listLoading = false
                 that.folderFileInfo.push(infoList)
-                // fileAdded.splice(i,1)
-                // that.$refs.uploaderFolder.uploader.files.splice(i, 1)
                 that.$refs.uploaderFolder.uploader.removeFile(fileA)
-                console.log(fileAdded.length);
                 if(completeFlag === listLength) {
                   that.md5Loading = false
-                  // console.log(fileAdded)
-                  // console.log(that.$refs.uploaderFolder.uploader.files)
-                  /*if(fileAdded.length === 0) {
-                    let datapost = JSON.stringify(that.folderFileInfo)
-                    console.log(datapost)
-                    uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '成功',
-                        message: '文件夹上传成功',
-                        type: 'success',
-                        duration: 2000
-                      })
-
-                      that.getList()
-                    }).catch(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '失败',
-                        message: '文件夹上传失败',
-                        type: 'error',
-                        duration: 2000
-                      })
-                    })
-                  }*/
                   that.$refs.uploaderFolder.uploader.upload()
                 }
-
-                /*uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                  let resVal = ''
-                  let val = fileA.size
-                  if( val < 1024 ) {
-                    resVal = val + ' B'
-                  } else if(val >= 1024 && val < 1048576 ) {
-                    resVal = Math.round(val/1024*10)/10 + ' KB'
-                  } else if(val >= 1048576 && val < 1073741824) {
-                    resVal = Math.round(val/1048576*10)/10 + ' MB'
-                  } else if(val >= 1073741824) {
-                    // 2653276160
-                    resVal = Math.round(val/1073741824*10)/10 + ' G'
-                  }
-                  $('.uploader-list ul').prepend('<div status="success" class="uploader-file">' +
-                    '<div class="uploader-file-progress" style="transform: translateX(0%);"></div> ' +
-                    '<div class="uploader-file-info">' +
-                    '<div class="uploader-file-name"><i icon="unknown" class="uploader-file-icon"></i>' + fileA.name +
-                    '</div> <div class="uploader-file-size">'+ resVal +
-                    '</div> <div class="uploader-file-meta"></div> <div class="uploader-file-status"><span>成功了</span> <span style="display: none;"><span>100%</span> <em>0 bytes / s</em> <i></i></span></div> <div class="uploader-file-actions"><span class="uploader-file-pause"></span> <span class="uploader-file-resume">️</span> <span class="uploader-file-retry"></span> <span class="uploader-file-remove"></span></div></div></div>')
-                  that.$refs.uploaderFolder.uploader.removeFile(fileA)
-                  let notiMes = '文件' + fileA.name + '上传成功！'
-                  that.listLoading = false
-                  that.$notify({
-                    title: '成功',
-                    message: notiMes,
-                    type: 'success',
-                    duration: 2000
-                  })
-
-                  if(completeFlag === fileAdded.length) {
-                    that.md5Loading = false
-                    that.$refs.uploaderFolder.uploader.upload()
-                  }
-                  that.getList()
-                })*/
               } else if (res.data.data === false) {
                 completeFlag++
                 if(completeFlag === listLength) {
                   that.md5Loading = false
-                  console.log(fileAdded.length)
-                  /*if(fileAdded.length === 0) {
-                    let datapost = JSON.stringify(that.folderFileInfo)
-                    console.log(datapost)
-                    uploadFiles(that.componentId, that.parentNodeId, datapost).then(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '成功',
-                        message: '文件夹上传成功',
-                        type: 'success',
-                        duration: 2000
-                      })
-                      that.getList()
-                    }).catch(() => {
-                      that.listLoading = false
-                      that.$notify({
-                        title: '失败',
-                        message: '文件夹上传失败',
-                        type: 'error',
-                        duration: 2000
-                      })
-                    })
-                  }*/
                   that.$refs.uploaderFolder.uploader.upload()
                 }
               }
@@ -983,11 +704,6 @@
           'relativePath': arguments[1].relativePath
         }
         let datapost = qs.stringify(data)
-        /*axios.post('http://192.168.31.13:8080/files/chunks/merge', datapost, {
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          }
-        })*/
         this.listLoading = true
         mergeFile(datapost).then((res)=> {
           let infoList = {
@@ -997,25 +713,6 @@
             relativePath: '/' + arguments[1].relativePath
           }
           this.folderFileInfo.push(infoList)
-          // let datapost = JSON.stringify(infoList)
-          /*axios.post('http://192.168.31.13:8080/components/05473be4-6b45-443f-9edc-314c3c12b818/uploadfiles',datapost, {
-            headers: {
-              'content-type': 'application/json;charset=utf-8', //设置请求头信息
-              'parentNodeId': this.parentNodeId
-            }
-          })*/
-          // let notiMes = '文件' + arguments[1].name + '上传成功！'
-          /*uploadFiles(this.componentId, this.parentNodeId, datapost).then(() => {
-            this.listLoading = false
-            this.$notify({
-              title: '成功',
-              message: notiMes,
-              type: 'success',
-              duration: 2000
-            })
-
-            this.getList()
-          })*/
         })
       },
       folderComplete() {

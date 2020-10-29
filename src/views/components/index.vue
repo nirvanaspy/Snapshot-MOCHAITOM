@@ -94,14 +94,7 @@
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.actions')" width="140" class-name="small-padding fixed-width" align="center">
-        <template slot-scope="scope">
-          <!--<el-button type="primary" size="mini" @click="handleUpdate(scope.row)" style="margin-left: 10px;">{{$t('table.edit')}}</el-button>-->
-          <el-dropdown trigger="click" v-if="!scope.row.deleted">
-            <!--<el-tooltip class="item" effect="dark" content="更多操作" placement="top">
-              <span class="el-dropdown-link">
-              <svg-icon icon-class="ellipsis"></svg-icon>
-            </span>
-            </el-tooltip>-->
+        <template slot-scope="scope"><el-dropdown trigger="click" v-if="!scope.row.deleted">
             <span class="el-dropdown-link">
               <el-button type="success" plain>更多操作</el-button>
             </span>
@@ -118,17 +111,9 @@
               <el-dropdown-item divided>
                 <span style="display:inline-block;padding:0 10px;" @click="handleDelete(scope.row)">删除</span>
               </el-dropdown-item>
-              <!--<el-dropdown-item divided>
-                <span style="display:inline-block;padding:0 10px;" @click="historyVersion(scope.row)">历史版本</span>
-              </el-dropdown-item>-->
             </el-dropdown-menu>
           </el-dropdown>
           <el-dropdown trigger="click" v-else>
-            <!--<el-tooltip class="item" effect="dark" content="更多操作" placement="top">
-              <span class="el-dropdown-link">
-              <svg-icon icon-class="ellipsis"></svg-icon>
-            </span>
-            </el-tooltip>-->
             <span class="el-dropdown-link">
               <el-button type="success" plain>更多操作</el-button>
             </span>
@@ -141,12 +126,6 @@
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <!--<el-button size="mini" type="success" @click="compCopy(scope.row)">复制</el-button>
-          <a @click="exportLink(scope.row)">
-            <el-button size="mini" type="info">导出</el-button>
-          </a>
-          <el-button size="mini" type="danger" @click="handleDelete(scope.row)">{{$t('table.delete')}}
-          </el-button>-->
         </template>
       </el-table-column>
 
@@ -222,44 +201,16 @@
             <el-form-item :label="$t('table.compDesc')" prop="desc">
               <el-input v-model="temp.description"></el-input>
             </el-form-item>
-            <!--<el-form-item label="修改描述" prop="desc">
-              <el-input v-model="temp.modifyDescription"
-                        type="textarea"
-                        :rows="2"
-                        placeholder="请输入修改描述"></el-input>
-            </el-form-item>-->
             <div class="button-container">
               <el-button @click="dialogFormVisible = false" style="margin-right: 10px">关闭</el-button>
               <el-button type="primary" @click="updateData" :loading="upComLoading">{{$t('table.confirm')}}</el-button>
             </div>
-            <!--去除修改组件时的文件上传模块-->
-            <!--<el-form-item :label="$t('table.compUpload')" prop="fileAll">
-            <uploader :options="options"
-                      :autoStart="autoStart"
-                      :file-status-text="statusText"
-                      :started="started"
-                      ref="uploader"
-                      class="uploader-example">
-              <uploader-unsupport></uploader-unsupport>
-              <uploader-drop>
-                <p>拖拽文件到此处或</p>
-                <uploader-btn>选择文件</uploader-btn>
-                <uploader-btn :directory="true">选择文件夹</uploader-btn>
-              </uploader-drop>
-              <uploader-list id="fileUp"></uploader-list>
-            </uploader>
-          </el-form-item>-->
           </div>
           <!--文件管理模块-->
           <div style="height: 100%;overflow: auto;width: 60%;float: right;padding:5px 0 10px 10px;border-left:1px solid #ccc;margin-top: -44px">
-            <!--<label style="width: 100%;font-size: 14px;">组件详细信息</label>-->
             <comFileManage :selectCompId="selectedId" :selectCompName="selectdName"></comFileManage>
           </div>
         </el-form>
-      <!--<div slot="footer" class="dialog-footer">-->
-        <!--<el-button @click="dialogFormVisible = false" style="margin-right: 10px">{{$t('table.cancel')}}</el-button>-->
-        <!--<el-button type="primary" @click="updateData">{{$t('table.confirm')}}</el-button>-->
-      <!--</div>-->
     </el-dialog>
   </div>
 </template>
@@ -583,20 +534,6 @@
             }
             this.upComLoading = true
             let id = this.selectedId;
-
-            // this.fileAll = this.$refs.uploader.uploader.files;
-
-            //开始上传后去掉暂停和删除按钮
-            //$(".uploader-file-actions").children(".uploader-file-pause").removeClass("uploader-file-pause");
-            //$(".uploader-file-actions").children(".uploader-file-remove").removeClass("uploader-file-remove");
-
-
-            /*for (var i = 0; i < this.fileAll.length; i++) {
-              //判断数组里是文件夹还是文件
-              formData.append('componentEntityFiles', this.fileAll[i].file);
-
-            }*/
-            // patch暂时不支持修改文件
             let data = {
               name: this.temp.name,
               version: this.temp.version,
@@ -607,14 +544,6 @@
             let qs = require('qs')
             let newdata = qs.stringify(data)
             updateComp(newdata,id).then(() => {
-              /*for (const v of this.list) {
-                if (v.id === this.temp.id) {
-                  const index = this.list.indexOf(v)
-                  this.list.splice(index, 1, this.temp)
-                  break
-                }
-              }*/
-              // updateloading.close()
               this.showConfirmBtn1 = false
               this.upComLoading = false
               this.dialogFormVisible = false
@@ -667,9 +596,7 @@
       },
 
       exportLink(row) {
-
         let id = row.id;
-        // this.exportUrl = this.getIP() + 'apis/components/' + id + '/export';
         this.exportUrl = service.defaults.baseURL + '/components/' + id + '/export';
         window.open(this.exportUrl);
       },
